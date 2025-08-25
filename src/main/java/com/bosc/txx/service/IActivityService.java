@@ -13,4 +13,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IActivityService extends IService<Activity> {
 
+    Activity getByName(String name);
 }
