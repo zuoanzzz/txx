@@ -13,4 +13,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IUserService extends IService<User> {
 
+    User loginByEmployeeNoAndPassword(String employeeNo, String password);
+
+    boolean changePassword(User user, String newRawPassword);
 }

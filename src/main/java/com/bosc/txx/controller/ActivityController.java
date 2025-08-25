@@ -1,6 +1,5 @@
 package com.bosc.txx.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.model.Activity;
@@ -10,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
+import java.time.LocalDateTime;
 
 import static com.bosc.txx.enums.CodeEnum.*;
 
@@ -81,6 +81,20 @@ public class ActivityController {
     public CommonResult<Page<Activity>> page(@RequestParam long pageNum, @RequestParam long pageSize) {
         Page<Activity> page = new Page<>(pageNum, pageSize);
         Page<Activity> result = activityService.page(page);
+        // 计算并填充分页记录的状态
+        LocalDateTime now = LocalDateTime.now();
+        result.getRecords().forEach(a -> {
+            if (a == null) return;
+            LocalDateTime start = a.getStartTime();
+            LocalDateTime end = a.getEndTime();
+            if (start != null && now.isBefore(start)) {
+                a.setStatus(0);
+            } else if (end != null && now.isAfter(end)) {
+                a.setStatus(2);
+            } else {
+                a.setStatus(1);
+            }
+        });
         return CommonResult.success(result);
     }
 }

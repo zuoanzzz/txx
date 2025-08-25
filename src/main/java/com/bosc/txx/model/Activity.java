@@ -84,4 +84,10 @@ public class Activity implements Serializable {
      */
     @TableField(value = "updated_time", fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedTime;
+
+    /**
+     * 活动状态（非持久化）：0-未开始；1-进行中；2-已结束
+     */
+    @TableField(exist = false)
+    private Integer status;
 }
