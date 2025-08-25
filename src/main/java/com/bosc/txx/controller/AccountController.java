@@ -4,16 +4,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * @author zhoulei
- * @date 2025/8/21
+ * <p>
+ * 系统账户表 前端控制器
+ * </p>
+ *
+ * @author code generator
+ * @since 2025-08-25
  */
-
 @RestController
-public class HelloController {
-
-    @RequestMapping("/hello")
-    public String hello(){
-        return "Hello World";
-    }
+@RequestMapping("/account")
+public class AccountController {
 
 }
