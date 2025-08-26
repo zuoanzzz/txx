@@ -56,13 +56,13 @@ public class ActivityBet implements Serializable {
      * 投注金额
      */
     @TableField("amount")
-    private BigDecimal amount;
+    private Long amount;
 
     /**
      * 使用的免费额度
      */
     @TableField("used_free_amount")
-    private BigDecimal usedFreeAmount;
+    private Long usedFreeAmount;
 
     /**
      * 关联交易ID
