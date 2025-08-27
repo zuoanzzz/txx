@@ -1,7 +1,12 @@
 package com.bosc.txx.service;
 
+import com.bosc.txx.common.CommonResult;
+import com.bosc.txx.vo.AccountCreateVO;
+import com.bosc.txx.vo.TransferVO;
 import com.bosc.txx.model.Account;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +18,15 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IAccountService extends IService<Account> {
 
+    CommonResult<?> createPersonalAccount(AccountCreateVO request);
+
+    CommonResult<?> deleteAccount(Long id);
+
+    CommonResult<?> updateAccount(Account account);
+
+    CommonResult<List<Account>> listAllAccounts();
+
+    CommonResult<?> transfer(TransferVO transRequest);
+
+    CommonResult<?> importAccounts(List<Account> accounts);
 }

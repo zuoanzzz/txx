@@ -1,7 +1,12 @@
 package com.bosc.txx.service;
 
+import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.model.BenefitCode;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.bosc.txx.vo.BenefitCodeCheckVO;
+import com.bosc.txx.vo.BenefitCodeExchangeVO;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +18,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IBenefitCodeService extends IService<BenefitCode> {
 
+    CommonResult<?> getBenefitCodes(BenefitCodeExchangeVO request);
+
+    CommonResult<List<Object>> listAll();
+
+    CommonResult<?> check(BenefitCodeCheckVO request);
 }

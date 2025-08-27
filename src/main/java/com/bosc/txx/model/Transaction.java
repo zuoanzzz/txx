@@ -80,7 +80,7 @@ public class Transaction implements Serializable {
      * 交易金额
      */
     @TableField("amount")
-    private BigDecimal amount;
+    private Long amount;
 
     /**
      * 交易类型

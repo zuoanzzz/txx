@@ -65,7 +65,7 @@ public class Activity implements Serializable {
      * 免费额度
      */
     @TableField("free_credit")
-    private BigDecimal freeCredit;
+    private Long freeCredit;
 
     /**
      * 是否删除

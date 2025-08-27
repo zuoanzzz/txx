@@ -38,6 +38,12 @@ public class Benefit implements Serializable {
     private String name;
 
     /**
+     * 权益账户
+     */
+    @TableField("account_id")
+    private String accountId;
+
+    /**
      * 权益描述
      */
     @TableField("description")
@@ -47,7 +53,7 @@ public class Benefit implements Serializable {
      * 所需币数
      */
     @TableField("price")
-    private BigDecimal price;
+    private Long price;
 
     /**
      * 图片资源ID

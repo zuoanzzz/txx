@@ -53,7 +53,7 @@ public class Account implements Serializable {
      * 余额
      */
     @TableField("balance")
-    private BigDecimal balance;
+    private Long balance;
 
     /**
      * 是否启用

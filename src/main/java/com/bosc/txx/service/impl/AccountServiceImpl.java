@@ -1,10 +1,27 @@
 package com.bosc.txx.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.bosc.txx.common.CommonResult;
+import com.bosc.txx.dao.TransactionMapper;
+import com.bosc.txx.dao.UserMapper;
+import com.bosc.txx.vo.AccountCreateVO;
+import com.bosc.txx.vo.TransferVO;
 import com.bosc.txx.model.Account;
 import com.bosc.txx.dao.AccountMapper;
+import com.bosc.txx.model.Transaction;
+import com.bosc.txx.model.User;
 import com.bosc.txx.service.IAccountService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.bosc.txx.util.AccountIdGenerator;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * <p>
@@ -17,4 +34,234 @@ import org.springframework.stereotype.Service;
 @Service
 public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> implements IAccountService {
 
+    @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
+    private AccountMapper accountMapper;
+
+    @Autowired
+    private TransactionMapper transactionMapper;
+
+    private static final String DEFAULT_PASSWORD = "B@s95594!";
+
+    // 用于创建个人账户
+    @Override
+    public CommonResult<?> createPersonalAccount(AccountCreateVO request) {
+        // 1.查user，若无则插入记录
+        User user = userMapper.selectById(request.getEmployeeNo());
+        if(user == null) {
+            User this_user = new User();
+            this_user.setEmployeeNo(request.getEmployeeNo());
+            this_user.setName(request.getName());
+            this_user.setDepartment(request.getDepartment());
+            user.setCreatedTime(LocalDateTime.now());
+            user.setUpdatedTime(LocalDateTime.now());
+
+            //设置初始密码
+            this_user.setPassword(encryptPassword());
+
+            this_user.setRole("NORMAL");
+            userMapper.insert(this_user);
+        }
+
+        // 2.创建account
+        Account account = new Account();
+        account.setUserId(user.getId());
+        account.setAccountId(AccountIdGenerator.generateAccountId()); // 可自定义生成规则
+        account.setAccountType("PERSONAL"); // 默认个人账户
+        account.setBalance(0L); // 初始余额
+        account.setDeleted(false);
+        account.setCreatedBy(Long.valueOf(request.getUserId()));
+        account.setCreatedTime(LocalDateTime.now());
+        account.setUpdatedTime(LocalDateTime.now());
+        accountMapper.insert(account);
+
+        return CommonResult.success(account);
+    }
+
+    private String encryptPassword() {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        return encoder.encode(AccountServiceImpl.DEFAULT_PASSWORD);
+    }
+
+    @Override
+    public CommonResult<?> deleteAccount(Long id) {
+        // 查询账户
+        Account account = accountMapper.selectById(id);
+        if (account == null) {
+            return CommonResult.failed(); // 账户不存在，使用统一失败返回
+        }
+
+        // 逻辑删除
+        account.setDeleted(true);
+        account.setUpdatedTime(LocalDateTime.now());
+        int rows = accountMapper.updateById(account);
+        if (rows > 0) {
+            return CommonResult.success("账户删除成功"); // 成功，返回 message
+        } else {
+            return CommonResult.failed(); // 删除失败，使用统一失败返回
+        }
+    }
+
+    @Override
+    public CommonResult<?> updateAccount(Account account) {
+        return null;
+    }
+
+    @Override
+    public CommonResult<List<Account>> listAllAccounts() {
+        // 查询 deleted = false 的账户
+        QueryWrapper<Account> query = new QueryWrapper<>();
+        query.eq("deleted", false);
+        List<Account> accounts = accountMapper.selectList(query);
+
+        return CommonResult.success(accounts);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public CommonResult<?> transfer(TransferVO transRequest) {
+        LocalDateTime start_time = LocalDateTime.now();
+
+        // 1. 基本参数校验
+        if (transRequest == null) {
+            return CommonResult.failed();
+        }
+        if (transRequest.getSourceAccountId() == null || transRequest.getTargetAccountId() == null) {
+            return CommonResult.failed();
+        }
+        if (transRequest.getSourceAccountType() == null || transRequest.getTargetAccountType() == null) {
+            return CommonResult.failed();
+        }
+        if (transRequest.getAmount() == null || transRequest.getAmount().trim().isEmpty()) {
+            return CommonResult.failed();
+        }
+
+        // 2. 解析金额（整数）
+        final long amount;
+        try {
+            amount = Long.parseLong(transRequest.getAmount().trim());
+            if (amount <= 0L) return CommonResult.failed();
+        } catch (NumberFormatException nfe) {
+            return CommonResult.failed();
+        }
+
+        // 3. 禁止同账户互转
+        if (transRequest.getSourceAccountId().equals(transRequest.getTargetAccountId())) {
+            return CommonResult.failed();
+        }
+
+        // 4. 固定加锁顺序（按 accountId 字典序）以避免死锁
+        String aId = transRequest.getSourceAccountId();
+        String bId = transRequest.getTargetAccountId();
+        String firstId = (aId.compareTo(bId) <= 0) ? aId : bId;
+        String secondId = (aId.compareTo(bId) <= 0) ? bId : aId;
+
+        Account firstLocked = accountMapper.selectByAccountIdForUpdate(firstId);
+        Account secondLocked = accountMapper.selectByAccountIdForUpdate(secondId);
+        if (firstLocked == null || secondLocked == null) {
+            return CommonResult.failed();
+        }
+
+        // 5. 映射回 src/tgt
+        Account src = firstLocked.getAccountId().equals(aId) ? firstLocked : secondLocked;
+        Account tgt = firstLocked.getAccountId().equals(aId) ? secondLocked : firstLocked;
+
+        // 6. 存在性与删除标志校验
+        if (src == null || tgt == null) return CommonResult.failed();
+        if (Boolean.TRUE.equals(src.getDeleted()) || Boolean.TRUE.equals(tgt.getDeleted())) {
+            return CommonResult.failed();
+        }
+
+        // 7. 直接使用请求中的 accountType，并决定 txType
+        String reqSrcType = transRequest.getSourceAccountType().trim().toUpperCase();
+        String reqTgtType = transRequest.getTargetAccountType().trim().toUpperCase();
+
+        String txType = determineTxType(reqSrcType, reqTgtType);
+        if (txType == null) {
+            return CommonResult.failed();
+        }
+
+        // 8. 余额校验（GRANT 不校验）
+        if (!"GRANT".equals(txType)) {
+            long srcBal = src.getBalance() == null ? 0L : src.getBalance();
+            if (srcBal < amount) {
+                return CommonResult.failed();
+            }
+        }
+
+        // 9. 更新余额并持久化（行锁已生效）
+        try {
+            if (!"GRANT".equals(txType)) {
+                long currentSrc = src.getBalance() == null ? 0L : src.getBalance();
+                long newSrc = Math.subtractExact(currentSrc, amount);
+                src.setBalance(newSrc);
+                src.setUpdatedTime(LocalDateTime.now());
+                accountMapper.updateById(src);
+            }
+
+            long currentTgt = tgt.getBalance() == null ? 0L : tgt.getBalance();
+            long newTgt = Math.addExact(currentTgt, amount);
+            tgt.setBalance(newTgt);
+            tgt.setUpdatedTime(LocalDateTime.now());
+            accountMapper.updateById(tgt);
+        } catch (ArithmeticException ae) {
+            // 溢出/下溢，抛出异常使事务回滚
+            throw ae;
+        }
+
+        // 10. 插入流水 Transaction
+        Transaction tx = new Transaction();
+        tx.setTxNo(UUID.randomUUID().toString().replace("-", ""));
+        tx.setSourceAccountId(src.getId());
+        tx.setTargetAccountId(tgt.getId());
+        tx.setSourceName(transRequest.getSourceName());
+        tx.setTargetName(transRequest.getTargetName());
+        tx.setSourceAccountType(reqSrcType);
+        tx.setTargetAccountType(reqTgtType);
+        tx.setAmount(amount);
+        tx.setTxType(txType);
+        tx.setReason(transRequest.getReason());
+        tx.setCreatedBy(null);            // 若需要 operatorId，请在 DTO 中加入并赋值
+        tx.setRelatedBetId(null);         // 若 ACTIVITY_BET 需要，则在后续扩展插入 activity_bet 并回写
+        tx.setMetadata(null);             // 若需要，可用 JSON 字符串赋值
+        tx.setStartTime(start_time);
+        tx.setEndTime(LocalDateTime.now());
+        transactionMapper.insert(tx);
+
+        // 11. 返回流水对象
+        return CommonResult.success(tx);
+    }
+
+    /**
+     * 根据请求中的源/目标账户类型直接判断交易类型
+     * 1. TRANSFER: personal/activity -> personal
+     * 2. GRANT: super -> personal
+     * 3. ACTIVITY_BET: personal -> activity
+     * 4. BENEFIT_REDEEM: personal -> benefit
+     * 返回 tx_type 字符串或 null（表示不允许）
+     */
+    private String determineTxType(String srcTypeUpper, String tgtTypeUpper) {
+        if ((srcTypeUpper.equals("PERSONAL") || srcTypeUpper.equals("ACTIVITY")) && tgtTypeUpper.equals("PERSONAL")) {
+            return "TRANSFER";
+        }
+        if (srcTypeUpper.equals("SUPER") && tgtTypeUpper.equals("PERSONAL")) {
+            return "GRANT";
+        }
+        if (srcTypeUpper.equals("PERSONAL") && tgtTypeUpper.equals("ACTIVITY")) {
+            return "ACTIVITY_BET";
+        }
+        if (srcTypeUpper.equals("PERSONAL") && tgtTypeUpper.equals("BENEFIT")) {
+            return "BENEFIT_REDEEM";
+        }
+        return null;
+    }
+
+
+
+    @Override
+    public CommonResult<?> importAccounts(List<Account> accounts) {
+        return null;
+    }
 }
