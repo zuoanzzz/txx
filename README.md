@@ -10,6 +10,8 @@
   - 可使用
     - id生成器
 - lombok
+- aop
+- logback
 ### 快速验证
 > test文件夹下SampleTest，执行后可在控制台看到user表中数据即可 
 
