@@ -19,3 +19,8 @@ server:
   servlet:
     session:
       timeout: 1d
+
+logging:
+  level:
+    root: info
+    com.bosc.txx: info
