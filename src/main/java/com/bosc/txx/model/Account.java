@@ -78,10 +78,4 @@ public class Account implements Serializable {
      */
     @TableField(value = "updated_time", fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedTime;
-
-    /**
-     * 最后登录时间
-     */
-    @TableField("last_login")
-    private LocalDateTime lastLogin;
 }

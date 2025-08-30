@@ -10,8 +10,14 @@
   - 可使用
     - id生成器
 - lombok
+- aop
+- logback
 ### 快速验证
 > test文件夹下SampleTest，执行后可在控制台看到user表中数据即可 
+
+### 需要check
+- 删除活动需要确认，删除活动则删除所有作品
+- lastlogin移动到user表
 
 
 

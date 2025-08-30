@@ -11,6 +11,16 @@ spring:
 mybatis-plus:
   global-config:
     db-config:
-      logic-delete-field: deleted # ?????????
-      logic-delete-value: 1 # ??????
-      logic-not-delete-value: 0 # ??????
+      logic-delete-field: deleted # 逻辑删除字段
+      logic-delete-value: 1 # 已删除的值
+      logic-not-delete-value: 0 # 未删除的值
+
+server:
+  servlet:
+    session:
+      timeout: 1d
+
+logging:
+  level:
+    root: info
+    com.bosc.txx: info
