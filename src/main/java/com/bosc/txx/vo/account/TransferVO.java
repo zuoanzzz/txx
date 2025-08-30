@@ -1,4 +1,4 @@
-package com.bosc.txx.vo;
+package com.bosc.txx.vo.account;
 
 import lombok.Data;
 
@@ -12,4 +12,6 @@ public class TransferVO {
     private String targetName;
     private String amount;
     private String reason;
+
+    private String userId;
 }

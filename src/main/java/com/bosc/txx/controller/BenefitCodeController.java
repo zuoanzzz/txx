@@ -1,10 +1,12 @@
 package com.bosc.txx.controller;
 
 import com.bosc.txx.common.CommonResult;
-import com.bosc.txx.model.BenefitCode;
+import com.bosc.txx.model.dto.benefitcode.ListAllBenefitCodeDTO;
 import com.bosc.txx.service.IBenefitCodeService;
-import com.bosc.txx.vo.BenefitCodeCheckVO;
-import com.bosc.txx.vo.BenefitCodeExchangeVO;
+import com.bosc.txx.vo.benefitcode.BenefitCodeCheckVO;
+import com.bosc.txx.vo.benefitcode.BenefitCodeExchangeVO;
+import com.bosc.txx.vo.benefitcode.ListAllBenefitCodeVO;
+import com.bosc.txx.vo.benefitcode.ListUserBenefitCodeVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,8 +38,27 @@ public class BenefitCodeController {
      * 查询所有兑换码
      */
     @GetMapping("/listAll")
-    public CommonResult<List<Object>> listAll() {
-        return iBenefitCodeService.listAll();
+    public CommonResult<List<ListAllBenefitCodeDTO>> listAll(@RequestBody ListAllBenefitCodeVO request) {
+        if (request.getPageNum() == null) {
+            request.setPageNum(1);
+        }
+        if (request.getPageSize() == null) {
+            request.setPageSize(10);
+        }
+
+        return iBenefitCodeService.listAll(request);
+    }
+
+    @GetMapping("/listByUser/{userId}")
+    public CommonResult<List<ListAllBenefitCodeDTO>> listByUserId(@PathVariable ListUserBenefitCodeVO request) {
+        if (request.getPageNum() == null) {
+            request.setPageNum(1);
+        }
+        if (request.getPageSize() == null) {
+            request.setPageSize(10);
+        }
+
+        return iBenefitCodeService.listByUserId(request);
     }
 
     /**

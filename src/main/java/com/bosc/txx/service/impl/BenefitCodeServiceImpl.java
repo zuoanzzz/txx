@@ -1,26 +1,30 @@
 package com.bosc.txx.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bosc.txx.common.CommonResult;
-import com.bosc.txx.dao.AccountMapper;
 import com.bosc.txx.dao.BenefitMapper;
 import com.bosc.txx.dao.UserMapper;
 import com.bosc.txx.model.Benefit;
 import com.bosc.txx.model.BenefitCode;
 import com.bosc.txx.dao.BenefitCodeMapper;
 import com.bosc.txx.model.User;
+import com.bosc.txx.model.dto.benefitcode.ListAllBenefitCodeDTO;
 import com.bosc.txx.service.IAccountService;
 import com.bosc.txx.service.IBenefitCodeService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.bosc.txx.vo.BenefitCodeCheckVO;
-import com.bosc.txx.vo.BenefitCodeExchangeVO;
-import com.bosc.txx.vo.TransferVO;
+import com.bosc.txx.vo.account.TransferVO;
+import com.bosc.txx.vo.benefitcode.BenefitCodeCheckVO;
+import com.bosc.txx.vo.benefitcode.BenefitCodeExchangeVO;
+import com.bosc.txx.vo.benefitcode.ListAllBenefitCodeVO;
+import com.bosc.txx.vo.benefitcode.ListUserBenefitCodeVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -46,6 +50,7 @@ public class BenefitCodeServiceImpl extends ServiceImpl<BenefitCodeMapper, Benef
     UserMapper userMapper;
 
     @Override
+    @Transactional
     public CommonResult<?> getBenefitCodes(BenefitCodeExchangeVO request) {
         if (request == null
                 || request.getAccountId() == null
@@ -54,9 +59,9 @@ public class BenefitCodeServiceImpl extends ServiceImpl<BenefitCodeMapper, Benef
             return CommonResult.failed();
         }
 
-        long count;
+        int count;
         try {
-            count = Long.parseLong(request.getCount().trim());
+            count = Integer.parseInt(request.getCount().trim());
             if (count <= 0) return CommonResult.failed();
         } catch (NumberFormatException nfe) {
             return CommonResult.failed();
@@ -85,6 +90,7 @@ public class BenefitCodeServiceImpl extends ServiceImpl<BenefitCodeMapper, Benef
         transferVO.setTargetName(benefit.getName());
         transferVO.setAmount(String.valueOf(benefit.getPrice() * count));
         transferVO.setReason("兑换权益：" + benefit.getName());
+        transferVO.setUserId(request.getUserId());
 
         CommonResult<?> transferResult = accountService.transfer(transferVO);
         if (transferResult.getCode() != 200) {
@@ -92,7 +98,7 @@ public class BenefitCodeServiceImpl extends ServiceImpl<BenefitCodeMapper, Benef
         }
 
         // 4. 扣减剩余数量
-        benefit.setRemain(benefit.getRemain() - (int) count);
+        benefit.setRemain(benefit.getRemain() - count);
         benefit.setUpdatedTime(LocalDateTime.now());
         benefitMapper.updateById(benefit);
 
@@ -113,35 +119,10 @@ public class BenefitCodeServiceImpl extends ServiceImpl<BenefitCodeMapper, Benef
     }
 
     @Override
-    public CommonResult<List<Object>> listAll() {
-        // 查询所有兑换码
-        List<BenefitCode> codes = benefitCodeMapper.selectList(new QueryWrapper<BenefitCode>()
-                .orderByDesc("created_time"));
-
-        // 查询对应的权益名称
-        List<Long> benefitIds = codes.stream()
-                .map(BenefitCode::getBenefitId)
-                .distinct()
-                .collect(Collectors.toList());
-
-        List<Benefit> benefits = benefitMapper.selectBatchIds(benefitIds);
-
-        // 组装返回数据
-        List<Object> result = codes.stream().map(code -> {
-            Benefit benefit = benefits.stream()
-                    .filter(b -> b.getId().equals(code.getBenefitId()))
-                    .findFirst().orElse(null);
-
-            return new Object() {
-                public String accountId = code.getUserId() != null ? String.valueOf(code.getUserId()) : null;
-                public String benefitId = code.getBenefitId() != null ? String.valueOf(code.getBenefitId()) : null;
-                public String benefitName = benefit != null ? benefit.getName() : null;
-                public Boolean status = "REDEEMED".equals(code.getStatus());
-                public String codeStr = code.getCode();
-            };
-        }).collect(Collectors.toList());
-
-        return CommonResult.success(result);
+    public CommonResult<List<ListAllBenefitCodeDTO>> listAll(ListAllBenefitCodeVO request) {
+        Page<ListAllBenefitCodeDTO> page = new Page<>(request.getPageNum(), request.getPageSize());
+        IPage<ListAllBenefitCodeDTO> result = benefitCodeMapper.listAllBenefitCodes(page);
+        return CommonResult.success(result.getRecords());
     }
 
     @Override
@@ -178,5 +159,12 @@ public class BenefitCodeServiceImpl extends ServiceImpl<BenefitCodeMapper, Benef
         }
 
         return CommonResult.success("核销完成");
+    }
+
+    @Override
+    public CommonResult<List<ListAllBenefitCodeDTO>> listByUserId(ListUserBenefitCodeVO request) {
+        Page<ListAllBenefitCodeDTO> page = new Page<>(request.getPageNum(), request.getPageSize());
+        IPage<ListAllBenefitCodeDTO> result = benefitCodeMapper.listByUserIdPage(page, request.getUserId());
+        return CommonResult.success(result.getRecords());
     }
 }

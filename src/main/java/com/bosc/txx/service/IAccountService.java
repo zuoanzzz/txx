@@ -1,10 +1,12 @@
 package com.bosc.txx.service;
 
 import com.bosc.txx.common.CommonResult;
-import com.bosc.txx.vo.AccountCreateVO;
-import com.bosc.txx.vo.TransferVO;
+import com.bosc.txx.vo.account.AccountCreateVO;
+import com.bosc.txx.vo.account.ListAllAccountVO;
+import com.bosc.txx.vo.account.TransferVO;
 import com.bosc.txx.model.Account;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,9 +26,9 @@ public interface IAccountService extends IService<Account> {
 
     CommonResult<?> updateAccount(Account account);
 
-    CommonResult<List<Account>> listAllAccounts();
+    CommonResult<List<Account>> listAllAccounts(ListAllAccountVO request);
 
     CommonResult<?> transfer(TransferVO transRequest);
 
-    CommonResult<?> importAccounts(List<Account> accounts);
+    CommonResult<?> importAccounts(MultipartFile file);
 }

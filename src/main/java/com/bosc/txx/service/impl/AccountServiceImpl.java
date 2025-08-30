@@ -1,11 +1,14 @@
 package com.bosc.txx.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.dao.TransactionMapper;
 import com.bosc.txx.dao.UserMapper;
-import com.bosc.txx.vo.AccountCreateVO;
-import com.bosc.txx.vo.TransferVO;
+import com.bosc.txx.vo.account.AccountCreateVO;
+import com.bosc.txx.vo.account.ListAllAccountVO;
+import com.bosc.txx.vo.account.TransferVO;
 import com.bosc.txx.model.Account;
 import com.bosc.txx.dao.AccountMapper;
 import com.bosc.txx.model.Transaction;
@@ -17,9 +20,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,7 +58,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     @Override
     public CommonResult<?> createPersonalAccount(AccountCreateVO request) {
         // 1.查user，若无则插入记录
-        User user = userMapper.selectById(request.getEmployeeNo());
+        User user = userMapper.selectByEmployeeNo(request.getEmployeeNo());
         if(user == null) {
             User this_user = new User();
             this_user.setEmployeeNo(request.getEmployeeNo());
@@ -110,13 +119,14 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     @Override
-    public CommonResult<List<Account>> listAllAccounts() {
+    public CommonResult<List<Account>> listAllAccounts(ListAllAccountVO request) {
         // 查询 deleted = false 的账户
+        Page<Account> page = new Page<>(request.getPageNum(), request.getPageSize());
         QueryWrapper<Account> query = new QueryWrapper<>();
         query.eq("deleted", false);
-        List<Account> accounts = accountMapper.selectList(query);
+        IPage<Account> accounts = accountMapper.selectPage(page,query);
 
-        return CommonResult.success(accounts);
+        return CommonResult.success(accounts.getRecords());
     }
 
     @Override
@@ -169,23 +179,25 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         Account tgt = firstLocked.getAccountId().equals(aId) ? secondLocked : firstLocked;
 
         // 6. 存在性与删除标志校验
-        if (src == null || tgt == null) return CommonResult.failed();
+        if (src == null || tgt == null) {
+            return CommonResult.failed();
+        }
         if (Boolean.TRUE.equals(src.getDeleted()) || Boolean.TRUE.equals(tgt.getDeleted())) {
             return CommonResult.failed();
         }
 
         // 7. 直接使用请求中的 accountType，并决定 txType
-        String reqSrcType = transRequest.getSourceAccountType().trim().toUpperCase();
-        String reqTgtType = transRequest.getTargetAccountType().trim().toUpperCase();
+        String srcType = transRequest.getSourceAccountType().trim().toUpperCase();
+        String tgtType = transRequest.getTargetAccountType().trim().toUpperCase();
 
-        String txType = determineTxType(reqSrcType, reqTgtType);
+        String txType = determineTxType(srcType, tgtType);
         if (txType == null) {
             return CommonResult.failed();
         }
 
         // 8. 余额校验（GRANT 不校验）
         if (!"GRANT".equals(txType)) {
-            long srcBal = src.getBalance() == null ? 0L : src.getBalance();
+            long srcBal = src.getBalance();
             if (srcBal < amount) {
                 return CommonResult.failed();
             }
@@ -194,14 +206,14 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         // 9. 更新余额并持久化（行锁已生效）
         try {
             if (!"GRANT".equals(txType)) {
-                long currentSrc = src.getBalance() == null ? 0L : src.getBalance();
+                long currentSrc = src.getBalance();
                 long newSrc = Math.subtractExact(currentSrc, amount);
                 src.setBalance(newSrc);
                 src.setUpdatedTime(LocalDateTime.now());
                 accountMapper.updateById(src);
             }
 
-            long currentTgt = tgt.getBalance() == null ? 0L : tgt.getBalance();
+            long currentTgt = tgt.getBalance();
             long newTgt = Math.addExact(currentTgt, amount);
             tgt.setBalance(newTgt);
             tgt.setUpdatedTime(LocalDateTime.now());
@@ -218,14 +230,14 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         tx.setTargetAccountId(tgt.getId());
         tx.setSourceName(transRequest.getSourceName());
         tx.setTargetName(transRequest.getTargetName());
-        tx.setSourceAccountType(reqSrcType);
-        tx.setTargetAccountType(reqTgtType);
+        tx.setSourceAccountType(srcType);
+        tx.setTargetAccountType(tgtType);
         tx.setAmount(amount);
         tx.setTxType(txType);
         tx.setReason(transRequest.getReason());
-        tx.setCreatedBy(null);            // 若需要 operatorId，请在 DTO 中加入并赋值
-        tx.setRelatedBetId(null);         // 若 ACTIVITY_BET 需要，则在后续扩展插入 activity_bet 并回写
-        tx.setMetadata(null);             // 若需要，可用 JSON 字符串赋值
+        tx.setCreatedBy(Long.valueOf(transRequest.getUserId()));
+        tx.setRelatedBetId(null);         // 后面由调用者写入这个字段
+        tx.setMetadata(null);
         tx.setStartTime(start_time);
         tx.setEndTime(LocalDateTime.now());
         transactionMapper.insert(tx);
@@ -260,8 +272,64 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
 
 
 
-    @Override
-    public CommonResult<?> importAccounts(List<Account> accounts) {
-        return null;
+    @Transactional
+    public CommonResult<?> importAccounts(MultipartFile file) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+
+            String line;
+            List<User> users = new ArrayList<>();
+            List<Account> accounts = new ArrayList<>();
+            boolean firstLine = true;
+
+            while ((line = reader.readLine()) != null) {
+                if (firstLine) {
+                    firstLine = false; // 跳过表头
+                    continue;
+                }
+                String[] cols = line.split(",");
+                if (cols.length < 3) continue; // 姓名、工号、部门
+
+                String name = cols[0].trim();
+                String employeeNo = cols[1].trim();
+                String department = cols[2].trim();
+
+                // 创建用户
+                User user = new User();
+                user.setName(name);
+                user.setEmployeeNo(employeeNo);
+                user.setDepartment(department);
+                user.setPassword(DEFAULT_PASSWORD);
+                user.setRole("NORMAL");
+                users.add(user);
+            }
+
+            // 批量插入用户
+            if (!users.isEmpty()) {
+                for (User user : users) {
+                    userMapper.insert(user);
+
+                    // 创建对应账户
+                    Account account = new Account();
+                    account.setUserId(user.getId());
+                    account.setAccountId(UUID.randomUUID().toString().replace("-", ""));
+                    account.setAccountType("PERSONAL");
+                    account.setBalance(0L);
+                    account.setDeleted(false);
+                    accounts.add(account);
+                }
+
+                // 批量插入账户
+                for (Account account : accounts) {
+                    accountMapper.insert(account);
+                }
+            }
+
+            return CommonResult.success();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return CommonResult.failed();
+        }
     }
 }

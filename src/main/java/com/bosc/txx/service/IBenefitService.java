@@ -3,8 +3,9 @@ package com.bosc.txx.service;
 import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.model.Benefit;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.bosc.txx.vo.BenefitCreateVO;
-import com.bosc.txx.vo.BenefitResponseVO;
+import com.bosc.txx.vo.benefit.BenefitCreateVO;
+import com.bosc.txx.vo.benefit.GetAllBenefitVO;
+import com.bosc.txx.vo.benefit.ListAllBenefitVO;
 
 import java.util.List;
 
@@ -18,11 +19,13 @@ import java.util.List;
  */
 public interface IBenefitService extends IService<Benefit> {
 
-    CommonResult<List<Benefit>> listAllBenefits();
+    CommonResult<List<Benefit>> listAllBenefits(ListAllBenefitVO request);
 
     CommonResult<?> createBenefit(BenefitCreateVO vo);
 
     CommonResult<?> updateBenefit(BenefitCreateVO vo);
 
     CommonResult<?> deleteBenefit(Long id);
+
+    CommonResult<List<Benefit>> getAllBenefit(GetAllBenefitVO request);
 }

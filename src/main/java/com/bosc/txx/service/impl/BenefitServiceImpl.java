@@ -1,6 +1,8 @@
 package com.bosc.txx.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.dao.AccountMapper;
 import com.bosc.txx.model.Account;
@@ -9,8 +11,9 @@ import com.bosc.txx.dao.BenefitMapper;
 import com.bosc.txx.service.IBenefitService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bosc.txx.util.AccountIdGenerator;
-import com.bosc.txx.vo.BenefitCreateVO;
-import com.bosc.txx.vo.BenefitResponseVO;
+import com.bosc.txx.vo.benefit.BenefitCreateVO;
+import com.bosc.txx.vo.benefit.GetAllBenefitVO;
+import com.bosc.txx.vo.benefit.ListAllBenefitVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,13 +38,20 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, Benefit> impl
     private AccountMapper accountMapper;
 
     @Override
-    public CommonResult<List<Benefit>> listAllBenefits() {
+    public CommonResult<List<Benefit>> listAllBenefits(ListAllBenefitVO request) {
+        // 1. 构造分页对象
+        Page<Benefit> page = new Page<>(request.getPageNum(), request.getPageSize());
+
+        // 2. 构造查询条件
         QueryWrapper<Benefit> q = new QueryWrapper<>();
         q.eq("deleted", 0)
                 .and(wrapper -> wrapper.isNull("exp_date")
                         .or().ge("exp_date", LocalDateTime.now()));
-        List<Benefit> list = benefitMapper.selectList(q);
-        return CommonResult.success(list);
+
+        // 3. 执行分页查询
+        IPage<Benefit> pageResult = benefitMapper.selectPage(page, q);
+
+        return CommonResult.success(pageResult.getRecords());
     }
 
     @Override
@@ -154,5 +164,14 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, Benefit> impl
         benefitMapper.updateById(benefit);
 
         return CommonResult.success("删除权益成功");
+    }
+
+    @Override
+    public CommonResult<List<Benefit>> getAllBenefit(GetAllBenefitVO request) {
+        Page<Benefit> page = new Page<>(request.getPageNum(), request.getPageSize());
+        QueryWrapper<Benefit> q = new QueryWrapper<>();
+        q.eq("deleted", 0);
+        IPage<Benefit> pageResult = benefitMapper.selectPage(page, q);
+        return CommonResult.success(pageResult.getRecords());
     }
 }

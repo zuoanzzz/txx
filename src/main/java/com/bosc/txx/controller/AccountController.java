@@ -1,13 +1,15 @@
 package com.bosc.txx.controller;
 
 
-import com.bosc.txx.vo.AccountCreateVO;
-import com.bosc.txx.vo.TransferVO;
+import com.bosc.txx.vo.account.AccountCreateVO;
+import com.bosc.txx.vo.account.ListAllAccountVO;
+import com.bosc.txx.vo.account.TransferVO;
 import com.bosc.txx.model.Account;
 import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.service.IAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -54,8 +56,8 @@ public class AccountController {
      * 查询所有账户
      */
     @GetMapping("/listAll")
-    public CommonResult<List<Account>> listAll() {
-        return iaccountService.listAllAccounts();
+    public CommonResult<List<Account>> listAll(@RequestBody ListAllAccountVO request) {
+        return iaccountService.listAllAccounts(request);
     }
 
     /**
@@ -71,7 +73,10 @@ public class AccountController {
      * 批量导入
      */
     @PostMapping("/import")
-    public CommonResult<?> importAccounts(@RequestBody List<Account> accounts) {
-        return iaccountService.importAccounts(accounts);
+    public CommonResult<?> importAccounts(@RequestParam("file") MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return CommonResult.failed();
+        }
+        return iaccountService.importAccounts(file);
     }
 }

@@ -1,4 +1,4 @@
-package com.bosc.txx.vo;
+package com.bosc.txx.vo.account;
 
 import lombok.Data;
 

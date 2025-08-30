@@ -17,4 +17,5 @@ import org.apache.ibatis.annotations.Param;
 public interface BenefitMapper extends BaseMapper<Benefit> {
 
     Benefit selectByIdForUpdate(@Param("benefitId")String benefitId);
+
 }
