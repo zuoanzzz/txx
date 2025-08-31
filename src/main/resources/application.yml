@@ -7,7 +7,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/stablecoin?serverTimezone=GMT%2B8
     username: root
-    password: 123456
+    password: root
     druid:
       # 初始化时建立物理连接的个数
       initial-size: 5
@@ -70,12 +70,21 @@ mybatis-plus:
       logic-delete-value: 1 # 已删除的值
       logic-not-delete-value: 0 # 未删除的值
   mapper-locations: classpath:mappers/*.xml
-
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  type-aliases-package: com.bosc.txx.model
 
 server:
   servlet:
     session:
-      timeout: 1d
+      create: never  # 不自动创建session
+  port: 8080
+
+# JWT配置
+jwt:
+  secret: your-super-secret-jwt-key-here-make-it-long-enough-for-security-at-least-256-bits
+  expiration: 86400000  # 24小时，单位毫秒
 
 logging:
   level:

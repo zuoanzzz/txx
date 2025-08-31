@@ -21,6 +21,7 @@ import static com.bosc.txx.enums.CodeEnum.*;
  * @author code generator
  * @since 2025-08-25
  */
+
 @RestController
 @RequestMapping("/activity")
 public class ActivityController {

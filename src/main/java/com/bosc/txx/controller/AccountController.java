@@ -30,6 +30,7 @@ import java.util.List;
  * @author
  * @since 2025-08-25
  */
+
 @RestController
 @RequestMapping("/account")
 public class AccountController {
@@ -63,7 +64,7 @@ public class AccountController {
     /**
      * 查询所有账户
      */
-    @GetMapping("/listAll")
+    @PostMapping("/listAll")
     public CommonResult<List<Account>> listAll(@RequestBody ListAllAccountVO request) {
         return iaccountService.listAllAccounts(request);
     }
