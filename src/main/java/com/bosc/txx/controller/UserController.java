@@ -6,10 +6,7 @@ import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.model.dto.login.ChangePasswordRequest;
 import com.bosc.txx.service.IUserService;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import jakarta.annotation.Resource;
 
@@ -26,6 +23,7 @@ import static com.bosc.txx.enums.CodeEnum.FIRST_LOGIN;
  * @author code generator
  * @since 2025-08-25
  */
+
 @RestController
 @RequestMapping("/user")
 public class UserController {
