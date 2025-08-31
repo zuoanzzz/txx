@@ -64,9 +64,9 @@ public class AccountController {
      * 交易接口（转账、流水）
      */
     @PostMapping("/trans")
-    public CommonResult<?> transfer(@RequestBody TransferVO transRequest) {
-
-        return iaccountService.transfer(transRequest);
+    public CommonResult<Long> transfer(@RequestBody TransferVO transRequest) {
+        Long txId = iaccountService.transfer(transRequest);
+        return CommonResult.success(txId);
     }
 
     /**

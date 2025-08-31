@@ -131,35 +131,35 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public CommonResult<?> transfer(TransferVO transRequest) {
+    public Long transfer(TransferVO transRequest) {
         LocalDateTime start_time = LocalDateTime.now();
 
         // 1. 基本参数校验
         if (transRequest == null) {
-            return CommonResult.failed();
+            return null;
         }
         if (transRequest.getSourceAccountId() == null || transRequest.getTargetAccountId() == null) {
-            return CommonResult.failed();
+            return null;
         }
         if (transRequest.getSourceAccountType() == null || transRequest.getTargetAccountType() == null) {
-            return CommonResult.failed();
+            return null;
         }
         if (transRequest.getAmount() == null || transRequest.getAmount().trim().isEmpty()) {
-            return CommonResult.failed();
+            return null;
         }
 
         // 2. 解析金额（整数）
         final long amount;
         try {
             amount = Long.parseLong(transRequest.getAmount().trim());
-            if (amount <= 0L) return CommonResult.failed();
+            if (amount <= 0L) return null;
         } catch (NumberFormatException nfe) {
-            return CommonResult.failed();
+            return null;
         }
 
         // 3. 禁止同账户互转
         if (transRequest.getSourceAccountId().equals(transRequest.getTargetAccountId())) {
-            return CommonResult.failed();
+            return null;
         }
 
         // 4. 固定加锁顺序（按 accountId 字典序）以避免死锁
@@ -171,7 +171,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         Account firstLocked = accountMapper.selectByAccountIdForUpdate(firstId);
         Account secondLocked = accountMapper.selectByAccountIdForUpdate(secondId);
         if (firstLocked == null || secondLocked == null) {
-            return CommonResult.failed();
+            return null;
         }
 
         // 5. 映射回 src/tgt
@@ -180,10 +180,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
 
         // 6. 存在性与删除标志校验
         if (src == null || tgt == null) {
-            return CommonResult.failed();
+            return null;
         }
         if (Boolean.TRUE.equals(src.getDeleted()) || Boolean.TRUE.equals(tgt.getDeleted())) {
-            return CommonResult.failed();
+            return null;
         }
 
         // 7. 直接使用请求中的 accountType，并决定 txType
@@ -192,14 +192,14 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
 
         String txType = determineTxType(srcType, tgtType);
         if (txType == null) {
-            return CommonResult.failed();
+            return null;
         }
 
         // 8. 余额校验（GRANT 不校验）
         if (!"GRANT".equals(txType)) {
             long srcBal = src.getBalance();
             if (srcBal < amount) {
-                return CommonResult.failed();
+                return null;
             }
         }
 
@@ -243,7 +243,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         transactionMapper.insert(tx);
 
         // 11. 返回流水对象
-        return CommonResult.success(tx);
+        return tx.getId();
     }
 
     /**

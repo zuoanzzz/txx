@@ -1,14 +1,31 @@
 package com.bosc.txx.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.bosc.txx.controller.vo.transaction.BatchTransferImportExcelVO;
 import com.bosc.txx.model.Transaction;
 import com.bosc.txx.dao.TransactionMapper;
+import com.bosc.txx.service.IAccountService;
 import com.bosc.txx.service.ITransactionService;
+import com.bosc.txx.dao.UserMapper;
+import com.bosc.txx.dao.AccountMapper;
+import com.bosc.txx.model.User;
+import com.bosc.txx.model.Account;
+import com.bosc.txx.exception.BatchTransferException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.bosc.txx.vo.account.TransferVO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * <p>
@@ -20,6 +37,18 @@ import java.util.List;
  */
 @Service
 public class TransactionServiceImpl extends ServiceImpl<TransactionMapper, Transaction> implements ITransactionService {
+    
+    private static final Logger log = LoggerFactory.getLogger(TransactionServiceImpl.class);
+    
+    @Autowired
+    private UserMapper userMapper;
+    
+    @Autowired
+    private AccountMapper accountMapper;
+
+    @Autowired
+    private IAccountService accountService;
+    
     @Override
     public List<Transaction> listByAccountId(Long accountId) {
         if (accountId == null) {
@@ -29,5 +58,56 @@ public class TransactionServiceImpl extends ServiceImpl<TransactionMapper, Trans
         wrapper.eq(Transaction::getTargetAccountId, accountId)
                 .or(w -> w.eq(Transaction::getSourceAccountId, accountId));
         return this.list(wrapper);
+    }
+
+    @Transactional(rollbackFor = Exception.class)   // 异常回滚所有导入
+    @Async
+    @Override
+    public void importDataAsync(List<BatchTransferImportExcelVO> list, User user) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        
+        // 获取系统账户ID（用于批量转账的源账户）
+        Account sourceAccount = accountMapper.selectById(user);
+        if (sourceAccount == null) {
+            throw new BatchTransferException("系统账户不存在，无法执行批量转账");
+        }
+        
+        for (BatchTransferImportExcelVO transferItem : list) {
+            // 1. 根据工号查找用户
+            User targetUser = userMapper.selectByEmployeeNo(transferItem.getEmployeeNo());
+            if (targetUser == null) {
+                throw new BatchTransferException(transferItem.getEmployeeNo(), "用户不存在", 
+                    "根据工号未找到对应的用户");
+            }
+            
+            // 2. 根据用户ID查找个人账户
+            Account targetAccount = accountMapper.selectOne(new QueryWrapper<Account>()
+                    .eq("user_id", user.getId()));
+            if (targetAccount == null) {
+                throw new BatchTransferException(transferItem.getEmployeeNo(), "账户不存在", 
+                    "用户没有对应的个人账户");
+            }
+
+            // 执行转账操作
+            TransferVO  transferVO = new TransferVO();
+            transferVO.setSourceName(user.getName());
+            transferVO.setTargetName(targetUser.getName());
+            transferVO.setSourceAccountId(sourceAccount.getAccountId());
+            transferVO.setTargetAccountId(targetAccount.getAccountId());
+            transferVO.setSourceAccountType(sourceAccount.getAccountType());
+            transferVO.setTargetAccountType(targetAccount.getAccountType());
+            transferVO.setAmount(String.valueOf(transferItem.getAmount()));
+            transferVO.setReason(transferItem.getRemark());
+            Long txId = accountService.transfer(transferVO);
+
+            if (Objects.isNull(txId)) {
+                throw new BatchTransferException(transferItem.getEmployeeNo(), "转账失败", 
+                    "执行转账操作时发生错误");
+            }
+        }
+        
+        log.info("批量转账完成，共处理 {} 条记录", list.size());
     }
 }

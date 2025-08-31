@@ -1,10 +1,23 @@
 package com.bosc.txx.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.bosc.txx.dao.AccountMapper;
+import com.bosc.txx.dao.UserMapper;
+import com.bosc.txx.exception.BatchTransferException;
+import com.bosc.txx.model.Account;
 import com.bosc.txx.model.ActivityBet;
 import com.bosc.txx.dao.ActivityBetMapper;
+import com.bosc.txx.model.User;
+import com.bosc.txx.model.dto.ActivityBet.ActivityBetReq;
+import com.bosc.txx.service.IAccountService;
 import com.bosc.txx.service.IActivityBetService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.bosc.txx.vo.account.TransferVO;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 /**
  * <p>
@@ -17,4 +30,47 @@ import org.springframework.stereotype.Service;
 @Service
 public class ActivityBetServiceImpl extends ServiceImpl<ActivityBetMapper, ActivityBet> implements IActivityBetService {
 
+    @Autowired
+    UserMapper userMapper;
+
+    @Autowired
+    AccountMapper accountMapper;
+
+    @Autowired
+    IAccountService accountService;
+
+    @Autowired
+    private ActivityBetMapper activityBetMapper;
+
+    @Override
+    public Boolean bet(ActivityBetReq activityBetReq) {
+        User sourceUser = activityBetReq.getUser();
+        Account sourceAccount = accountMapper.selectOne(new QueryWrapper<Account>()
+                .eq("user_id", sourceUser.getId()));
+        Account targetAccount = accountMapper.selectOne(new QueryWrapper<Account>()
+                .eq("account_id", activityBetReq.getActivityId()));
+        User targetUser = userMapper.selectById(targetAccount.getUserId());
+
+        // 执行转账操作
+        TransferVO transferVO = new TransferVO();
+        transferVO.setSourceName(sourceUser.getName());
+        transferVO.setTargetName(targetUser.getName());
+        transferVO.setSourceAccountId(sourceAccount.getAccountId());
+        transferVO.setTargetAccountId(targetAccount.getAccountId());
+        transferVO.setSourceAccountType(sourceAccount.getAccountType());
+        transferVO.setTargetAccountType(targetAccount.getAccountType());
+        transferVO.setAmount(String.valueOf(activityBetReq.getAmount()));
+        transferVO.setReason("投注");
+        Long txId = accountService.transfer(transferVO);
+        if (Objects.isNull(txId)) {
+            throw new BatchTransferException("执行转账操作时发生错误");
+        }
+
+        ActivityBet activityBet = new ActivityBet();
+        BeanUtils.copyProperties(activityBetReq, activityBet);
+        activityBet.setRelatedTxId(txId);
+        Boolean ok = activityBetMapper.insert(activityBet) > 0;
+
+        return ok;
+    }
 }

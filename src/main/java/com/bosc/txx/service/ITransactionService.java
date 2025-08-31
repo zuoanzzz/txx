@@ -1,7 +1,10 @@
 package com.bosc.txx.service;
 
+import com.bosc.txx.controller.vo.transaction.BatchTransferImportExcelVO;
 import com.bosc.txx.model.Transaction;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.bosc.txx.model.User;
+
 import java.util.List;
 
 /**
@@ -18,4 +21,6 @@ public interface ITransactionService extends IService<Transaction> {
      * 规则：用户名下任一账户作为源或目标参与的流水，或由该用户创建的流水
      */
     List<Transaction> listByAccountId(Long accountId);
+
+    void importDataAsync(List<BatchTransferImportExcelVO> list, User user);
 }

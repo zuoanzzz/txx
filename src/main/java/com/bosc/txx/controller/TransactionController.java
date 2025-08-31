@@ -1,14 +1,18 @@
 package com.bosc.txx.controller;
 
 import com.bosc.txx.common.CommonResult;
+import com.bosc.txx.controller.vo.transaction.BatchTransferImportExcelVO;
 import com.bosc.txx.model.Transaction;
+import com.bosc.txx.model.User;
 import com.bosc.txx.service.ITransactionService;
+import com.bosc.txx.util.ExcelUtils;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -36,6 +40,23 @@ public class TransactionController {
     public CommonResult<List<Transaction>> listByAccountId(@PathVariable Long accountId) {
         List<Transaction> list = transactionService.listByAccountId(accountId);
         return CommonResult.success(list);
+    }
+
+    @GetMapping("/get-import-template")
+    public void importTemplate(HttpServletResponse response) throws IOException {
+        // 手动创建导出 demo
+        List<BatchTransferImportExcelVO> list = Arrays.asList(
+                BatchTransferImportExcelVO.builder().build());
+        // 输出
+        ExcelUtils.write(response, "批量转账导入模板.xls", "批量转账", BatchTransferImportExcelVO.class, list);
+    }
+
+    @PostMapping("/import")
+    public CommonResult<Boolean> importExcel(@RequestParam("file") MultipartFile file, @RequestBody User user) throws IOException {
+        List<BatchTransferImportExcelVO> list = ExcelUtils.read(file, BatchTransferImportExcelVO.class);
+
+        transactionService.importDataAsync(list, user);
+        return CommonResult.success(true);
     }
 
 }

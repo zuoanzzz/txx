@@ -2,6 +2,7 @@ package com.bosc.txx.service;
 
 import com.bosc.txx.model.ActivityBet;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.bosc.txx.model.dto.ActivityBet.ActivityBetReq;
 
 /**
  * <p>
@@ -13,4 +14,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IActivityBetService extends IService<ActivityBet> {
 
+    Boolean bet(ActivityBetReq activityBetReq);
 }

@@ -92,8 +92,8 @@ public class BenefitCodeServiceImpl extends ServiceImpl<BenefitCodeMapper, Benef
         transferVO.setReason("兑换权益：" + benefit.getName());
         transferVO.setUserId(request.getUserId());
 
-        CommonResult<?> transferResult = accountService.transfer(transferVO);
-        if (transferResult.getCode() != 200) {
+        Long txId = accountService.transfer(transferVO);
+        if (Objects.isNull(txId)) {
             return CommonResult.failed();
         }
 
