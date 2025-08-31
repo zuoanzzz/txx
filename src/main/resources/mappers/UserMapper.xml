@@ -12,7 +12,7 @@
         LIMIT 1
     </select>
 
-    <select id="selectUserByAccountId" parameterType="string" resultType="com.example.entity.User">
+    <select id="selectUserByEmployeeNo" parameterType="string" resultType="com.example.entity.User">
         SELECT u.*
         FROM user u
         WHERE u.employeeNo = #{employeeNo}

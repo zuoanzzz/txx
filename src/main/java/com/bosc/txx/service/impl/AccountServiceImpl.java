@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
+
 /**
  * <p>
  * 系统账户表 服务实现类
@@ -57,8 +59,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     // 用于创建个人账户
     @Override
     public Integer createPersonalAccount(AccountCreateVO request) {
+
+        System.out.println("开始创建user");
         // 1.查user，若无则插入记录
-        User user = userMapper.selectByEmployeeNo(request.getEmployeeNo());
+        User user = userMapper.selectUserByEmployeeNo(request.getEmployeeNo());
         if(user == null) {
             User this_user = new User();
             this_user.setEmployeeNo(request.getEmployeeNo());
@@ -90,8 +94,8 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     private String encryptPassword() {
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        return encoder.encode(AccountServiceImpl.DEFAULT_PASSWORD);
+        String newPwdEnc = md5Hex(DEFAULT_PASSWORD);
+        return newPwdEnc;
     }
 
     @Override
