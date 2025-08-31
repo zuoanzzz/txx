@@ -25,20 +25,20 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(new LoggingInterceptor())
                 .addPathPatterns("/**");
 
-        registry.addInterceptor(new LoginInterceptor())
-                .addPathPatterns("/**")
-                .excludePathPatterns(
-                        "/user/login",
-                        "/error",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/doc.html",
-                        "/favicon.ico",
-                        "/static/**",
-                        "/css/**",
-                        "/js/**",
-                        "/images/**"
-                );
+//        registry.addInterceptor(new LoginInterceptor())
+//                .addPathPatterns("/**")
+//                .excludePathPatterns(
+//                        "/user/login",
+//                        "/error",
+//                        "/swagger-ui/**",
+//                        "/v3/api-docs/**",
+//                        "/doc.html",
+//                        "/favicon.ico",
+//                        "/static/**",
+//                        "/css/**",
+//                        "/js/**",
+//                        "/images/**"
+//                );
 
 
     }
