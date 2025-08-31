@@ -7,6 +7,7 @@ import com.bosc.txx.model.User;
 import com.bosc.txx.service.ITransactionService;
 import com.bosc.txx.util.ExcelUtils;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +24,7 @@ import java.util.List;
  * @author code generator
  * @since 2025-08-25
  */
+
 @RestController
 @RequestMapping("/transaction")
 public class TransactionController {
@@ -51,11 +53,32 @@ public class TransactionController {
         ExcelUtils.write(response, "批量转账导入模板.xls", "批量转账", BatchTransferImportExcelVO.class, list);
     }
 
-    @PostMapping("/import")
+    /**
+     * 批量发放-excel
+     * @param file
+     * @param user
+     * @return
+     * @throws IOException
+     */
+    @PostMapping("/import-excel")
     public CommonResult<Boolean> importExcel(@RequestParam("file") MultipartFile file, @RequestBody User user) throws IOException {
         List<BatchTransferImportExcelVO> list = ExcelUtils.read(file, BatchTransferImportExcelVO.class);
 
         transactionService.importDataAsync(list, user);
+        return CommonResult.success(true);
+    }
+
+    /**
+     * 批量发放-list
+     * @param list
+     * @param session
+     * @return
+     * @throws IOException
+     */
+    @PostMapping("/import-list")
+    public CommonResult<Boolean> importList(@RequestBody List<BatchTransferImportExcelVO> list, HttpSession session) throws IOException {
+        User sessionUser = (User) session.getAttribute("LOGIN_USER");
+        transactionService.importDataAsync(list, sessionUser);
         return CommonResult.success(true);
     }
 
