@@ -3,7 +3,9 @@ package com.bosc.txx.service.impl;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.bosc.txx.dao.AccountMapper;
 import com.bosc.txx.dao.ActivityMapper;
+import com.bosc.txx.model.Account;
 import com.bosc.txx.model.Activity;
 import com.bosc.txx.service.IActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +28,27 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
 
     @Autowired
     ActivityMapper activityMapper;
+    @Autowired
+    private AccountMapper accountMapper;
 
     @Override
     public Activity getByName(String name) {
         Activity activity = activityMapper.selectOne(new QueryWrapper<Activity>().eq("name", name));
         fillStatus(activity);
         return activity;
+    }
+
+    @Override
+    public Boolean createActivityAccount(Activity activity, Long userId) {
+        Account account = new Account();
+        account.setCreatedBy(userId);
+        account.setAccountType("ACTIVITY");
+        accountMapper.insert(account);
+
+        activity.setAccountId(account.getId());
+        int row = activityMapper.insert(activity);
+
+        return row > 0;
     }
 
     @Override

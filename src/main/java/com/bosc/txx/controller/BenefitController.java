@@ -19,6 +19,7 @@ import java.util.List;
  * @author code generator
  * @since 2025-08-25
  */
+
 @RestController
 @RequestMapping("/benefit")
 public class BenefitController {

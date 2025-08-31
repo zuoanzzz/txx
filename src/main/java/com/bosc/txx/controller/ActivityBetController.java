@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author code generator
  * @since 2025-08-25
  */
+
 @RestController
 @RequestMapping("/activityBet")
 public class ActivityBetController {

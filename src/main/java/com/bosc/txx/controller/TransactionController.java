@@ -6,8 +6,9 @@ import com.bosc.txx.model.Transaction;
 import com.bosc.txx.model.User;
 import com.bosc.txx.service.ITransactionService;
 import com.bosc.txx.util.ExcelUtils;
+import com.bosc.txx.util.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +32,9 @@ public class TransactionController {
 
     @Autowired
     private ITransactionService transactionService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @GetMapping("/listAll")
     public CommonResult<List<Transaction>> listAll() {
@@ -56,29 +60,29 @@ public class TransactionController {
     /**
      * 批量发放-excel
      * @param file
-     * @param user
      * @return
      * @throws IOException
      */
     @PostMapping("/import-excel")
-    public CommonResult<Boolean> importExcel(@RequestParam("file") MultipartFile file, @RequestBody User user) throws IOException {
+    public CommonResult<Boolean> importExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) throws IOException {
         List<BatchTransferImportExcelVO> list = ExcelUtils.read(file, BatchTransferImportExcelVO.class);
 
-        transactionService.importDataAsync(list, user);
+        String token = jwtUtil.extractTokenFromHeader(request.getHeader("Authorization"));
+        transactionService.importDataAsync(list, jwtUtil.getUserIdFromToken(token));
         return CommonResult.success(true);
     }
 
     /**
      * 批量发放-list
      * @param list
-     * @param session
+     * @param request
      * @return
      * @throws IOException
      */
     @PostMapping("/import-list")
-    public CommonResult<Boolean> importList(@RequestBody List<BatchTransferImportExcelVO> list, HttpSession session) throws IOException {
-        User sessionUser = (User) session.getAttribute("LOGIN_USER");
-        transactionService.importDataAsync(list, sessionUser);
+    public CommonResult<Boolean> importList(@RequestBody List<BatchTransferImportExcelVO> list, HttpServletRequest request) throws IOException {
+        String token = jwtUtil.extractTokenFromHeader(request.getHeader("Authorization"));
+        transactionService.importDataAsync(list, jwtUtil.getUserIdFromToken(token));
         return CommonResult.success(true);
     }
 

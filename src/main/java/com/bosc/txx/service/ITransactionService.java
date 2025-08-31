@@ -22,5 +22,5 @@ public interface ITransactionService extends IService<Transaction> {
      */
     List<Transaction> listByAccountId(Long accountId);
 
-    void importDataAsync(List<BatchTransferImportExcelVO> list, User user);
+    void importDataAsync(List<BatchTransferImportExcelVO> list, Long createdBy);
 }
