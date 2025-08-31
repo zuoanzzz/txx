@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class TransferVO {
-    private String sourceAccountId;
     private String targetAccountId;
     private Long amount;
     private String reason;

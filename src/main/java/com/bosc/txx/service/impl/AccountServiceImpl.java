@@ -227,8 +227,8 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         // 10. 插入流水 Transaction
         Transaction tx = new Transaction();
         tx.setTxNo(UUID.randomUUID().toString().replace("-", ""));
-        tx.setSourceAccountId(src.getId());
-        tx.setTargetAccountId(tgt.getId());
+        tx.setSourceAccountId(Long.valueOf(src.getAccountId()));
+        tx.setTargetAccountId(Long.valueOf(tgt.getAccountId()));
         tx.setSourceName(transRequest.getSourceName());
         tx.setTargetName(transRequest.getTargetName());
         tx.setSourceAccountType(srcType);

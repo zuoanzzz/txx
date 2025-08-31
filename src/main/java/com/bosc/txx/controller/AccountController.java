@@ -1,6 +1,7 @@
 package com.bosc.txx.controller;
 
 
+import com.bosc.txx.controller.vo.transaction.BatchAccountImportExcelVO;
 import com.bosc.txx.controller.vo.transaction.BatchTransferImportExcelVO;
 import com.bosc.txx.dao.AccountMapper;
 import com.bosc.txx.dao.UserMapper;
@@ -63,7 +64,7 @@ public class AccountController {
     /**
      * 查询所有账户
      */
-    @GetMapping("/listAll")
+    @PostMapping("/listAll")
     public CommonResult<List<Account>> listAll(@RequestBody ListAllAccountVO request) {
         return iaccountService.listAllAccounts(request);
     }
@@ -73,8 +74,9 @@ public class AccountController {
      */
     @PostMapping("/trans")
     public CommonResult<Long> transfer(@RequestBody TransferVO transRequest) {
+        Account srcAccount = accountMapper.selectByUserId(transRequest.getCreatedBy());
         TransferDTO request = new TransferDTO();
-        Account src = accountMapper.selectByAccountId(transRequest.getSourceAccountId());
+        Account src = accountMapper.selectByAccountId(srcAccount.getAccountId());
         Account tgt = accountMapper.selectByAccountId(transRequest.getTargetAccountId());
 
         if("PERSONAL".equals(src.getAccountType())) {
@@ -84,10 +86,10 @@ public class AccountController {
 
         if("PERSONAL".equals(tgt.getAccountType())) {
             User tgtUser = userMapper.selectById(tgt.getUserId());
-            request.setSourceName(tgtUser.getName());
+            request.setTargetName(tgtUser.getName());
         }
 
-        request.setSourceAccountId(transRequest.getSourceAccountId());
+        request.setSourceAccountId(srcAccount.getAccountId());
         request.setSourceAccountType(src.getAccountType());
         request.setTargetAccountId(transRequest.getTargetAccountId());
         request.setTargetAccountType(tgt.getAccountType());
@@ -106,10 +108,10 @@ public class AccountController {
     @GetMapping("/get-import-template")
     public void importTemplate(HttpServletResponse response) throws IOException {
         // 手动创建导出 demo
-        List<BatchTransferImportExcelVO> list = Arrays.asList(
-                BatchTransferImportExcelVO.builder().build());
+        List<BatchAccountImportExcelVO> list = Arrays.asList(
+                BatchAccountImportExcelVO.builder().build());
         // 输出
-        ExcelUtils.write(response, "批量导入用户模板.xls", "导入用户", BatchTransferImportExcelVO.class, list);
+        ExcelUtils.write(response, "批量导入用户模板.xls", "导入用户", BatchAccountImportExcelVO.class, list);
     }
 
     /**

@@ -2,6 +2,7 @@ package com.bosc.txx.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.bosc.txx.model.Account;
+import com.bosc.txx.model.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -19,4 +20,6 @@ public interface AccountMapper extends BaseMapper<Account> {
     Account selectByAccountId(@Param("accountId") String accountId);
 
     Account selectByAccountIdForUpdate(@Param("accountId") String accountId);
+
+    Account selectByUserId(@Param("userId") Long userId);
 }
