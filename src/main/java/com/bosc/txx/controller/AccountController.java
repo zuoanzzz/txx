@@ -1,16 +1,25 @@
 package com.bosc.txx.controller;
 
 
+import com.bosc.txx.controller.vo.transaction.BatchTransferImportExcelVO;
+import com.bosc.txx.dao.AccountMapper;
+import com.bosc.txx.dao.UserMapper;
+import com.bosc.txx.model.User;
+import com.bosc.txx.model.dto.account.TransferDTO;
+import com.bosc.txx.util.ExcelUtils;
 import com.bosc.txx.vo.account.AccountCreateVO;
 import com.bosc.txx.vo.account.ListAllAccountVO;
 import com.bosc.txx.vo.account.TransferVO;
 import com.bosc.txx.model.Account;
 import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.service.IAccountService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -28,28 +37,27 @@ public class AccountController {
     @Autowired
     private IAccountService iaccountService;
 
+    @Autowired
+    private AccountMapper accountMapper;
+
+    @Autowired
+    private UserMapper userMapper;
+
     /**
      * 新增账户
      */
     @PostMapping("/create")
-    public CommonResult<?> create(@RequestBody AccountCreateVO request) {
-        return iaccountService.createPersonalAccount(request);
+    public CommonResult<Integer> create(@RequestBody AccountCreateVO request) {
+        Integer result = iaccountService.createPersonalAccount(request);
+        return CommonResult.success(result);
     }
 
     /**
      * 删除账户
      */
-    @DeleteMapping("/delete/{id}")
-    public CommonResult<?> delete(@PathVariable Long id) {
-        return iaccountService.deleteAccount(id);
-    }
-
-    /**
-     * 编辑账户（不准确，应该是账户加用户的信息都在一个接口里修改）
-     */
-    @PutMapping("/update")
-    public CommonResult<?> update(@RequestBody Account account) {
-        return iaccountService.updateAccount(account);
+    @DeleteMapping("/delete/{accountId}")
+    public CommonResult<?> delete(@PathVariable String accountId) {
+        return iaccountService.deleteAccount(accountId);
     }
 
     /**
@@ -65,8 +73,43 @@ public class AccountController {
      */
     @PostMapping("/trans")
     public CommonResult<Long> transfer(@RequestBody TransferVO transRequest) {
-        Long txId = iaccountService.transfer(transRequest);
+        TransferDTO request = new TransferDTO();
+        Account src = accountMapper.selectByAccountId(transRequest.getSourceAccountId());
+        Account tgt = accountMapper.selectByAccountId(transRequest.getTargetAccountId());
+
+        if("PERSONAL".equals(src.getAccountType())) {
+            User srcUser = userMapper.selectById(src.getUserId());
+            request.setSourceName(srcUser.getName());
+        }
+
+        if("PERSONAL".equals(tgt.getAccountType())) {
+            User tgtUser = userMapper.selectById(tgt.getUserId());
+            request.setSourceName(tgtUser.getName());
+        }
+
+        request.setSourceAccountId(transRequest.getSourceAccountId());
+        request.setSourceAccountType(src.getAccountType());
+        request.setTargetAccountId(transRequest.getTargetAccountId());
+        request.setTargetAccountType(tgt.getAccountType());
+
+        request.setAmount(transRequest.getAmount());
+        request.setReason(transRequest.getReason());
+        request.setCreatedBy(transRequest.getCreatedBy());
+
+        Long txId = iaccountService.transfer(request);
+        if(txId == null) {
+            return CommonResult.failed();
+        }
         return CommonResult.success(txId);
+    }
+
+    @GetMapping("/get-import-template")
+    public void importTemplate(HttpServletResponse response) throws IOException {
+        // 手动创建导出 demo
+        List<BatchTransferImportExcelVO> list = Arrays.asList(
+                BatchTransferImportExcelVO.builder().build());
+        // 输出
+        ExcelUtils.write(response, "批量导入用户模板.xls", "导入用户", BatchTransferImportExcelVO.class, list);
     }
 
     /**

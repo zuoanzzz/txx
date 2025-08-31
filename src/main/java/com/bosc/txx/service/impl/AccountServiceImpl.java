@@ -6,9 +6,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.dao.TransactionMapper;
 import com.bosc.txx.dao.UserMapper;
+import com.bosc.txx.model.dto.account.TransferDTO;
 import com.bosc.txx.vo.account.AccountCreateVO;
 import com.bosc.txx.vo.account.ListAllAccountVO;
-import com.bosc.txx.vo.account.TransferVO;
 import com.bosc.txx.model.Account;
 import com.bosc.txx.dao.AccountMapper;
 import com.bosc.txx.model.Transaction;
@@ -56,7 +56,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
 
     // 用于创建个人账户
     @Override
-    public CommonResult<?> createPersonalAccount(AccountCreateVO request) {
+    public Integer createPersonalAccount(AccountCreateVO request) {
         // 1.查user，若无则插入记录
         User user = userMapper.selectByEmployeeNo(request.getEmployeeNo());
         if(user == null) {
@@ -81,12 +81,12 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         account.setAccountType("PERSONAL"); // 默认个人账户
         account.setBalance(0L); // 初始余额
         account.setDeleted(false);
-        account.setCreatedBy(Long.valueOf(request.getUserId()));
+        account.setCreatedBy(Long.valueOf(request.getCreatedBy()));
         account.setCreatedTime(LocalDateTime.now());
         account.setUpdatedTime(LocalDateTime.now());
-        accountMapper.insert(account);
+        Integer result = accountMapper.insert(account);
 
-        return CommonResult.success(account);
+        return result;
     }
 
     private String encryptPassword() {
@@ -95,9 +95,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     @Override
-    public CommonResult<?> deleteAccount(Long id) {
+    public CommonResult<?> deleteAccount(String accountId) {
         // 查询账户
-        Account account = accountMapper.selectById(id);
+        Account account = accountMapper.selectByAccountId(accountId);
         if (account == null) {
             return CommonResult.failed(); // 账户不存在，使用统一失败返回
         }
@@ -113,10 +113,6 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         }
     }
 
-    @Override
-    public CommonResult<?> updateAccount(Account account) {
-        return null;
-    }
 
     @Override
     public CommonResult<List<Account>> listAllAccounts(ListAllAccountVO request) {
@@ -131,7 +127,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long transfer(TransferVO transRequest) {
+    public Long transfer(TransferDTO transRequest) {
         LocalDateTime start_time = LocalDateTime.now();
 
         // 1. 基本参数校验
@@ -141,18 +137,18 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         if (transRequest.getSourceAccountId() == null || transRequest.getTargetAccountId() == null) {
             return null;
         }
-        if (transRequest.getSourceAccountType() == null || transRequest.getTargetAccountType() == null) {
+        if (transRequest.getAmount() == null) {
             return null;
         }
-        if (transRequest.getAmount() == null || transRequest.getAmount().trim().isEmpty()) {
-            return null;
-        }
+
 
         // 2. 解析金额（整数）
         final long amount;
         try {
-            amount = Long.parseLong(transRequest.getAmount().trim());
-            if (amount <= 0L) return null;
+            amount = transRequest.getAmount();
+            if (amount <= 0L) {
+                return null;
+            }
         } catch (NumberFormatException nfe) {
             return null;
         }
@@ -235,7 +231,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         tx.setAmount(amount);
         tx.setTxType(txType);
         tx.setReason(transRequest.getReason());
-        tx.setCreatedBy(Long.valueOf(transRequest.getUserId()));
+        tx.setCreatedBy(transRequest.getCreatedBy());
         tx.setRelatedBetId(null);         // 后面由调用者写入这个字段
         tx.setMetadata(null);
         tx.setStartTime(start_time);

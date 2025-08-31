@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bosc.txx.controller.vo.transaction.BatchTransferImportExcelVO;
 import com.bosc.txx.model.Transaction;
 import com.bosc.txx.dao.TransactionMapper;
+import com.bosc.txx.model.dto.account.TransferDTO;
 import com.bosc.txx.service.IAccountService;
 import com.bosc.txx.service.ITransactionService;
 import com.bosc.txx.dao.UserMapper;
@@ -13,7 +14,6 @@ import com.bosc.txx.model.Account;
 import com.bosc.txx.exception.BatchTransferException;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.bosc.txx.vo.account.TransferVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +21,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * <p>
@@ -91,16 +89,16 @@ public class TransactionServiceImpl extends ServiceImpl<TransactionMapper, Trans
             }
 
             // 执行转账操作
-            TransferVO  transferVO = new TransferVO();
-            transferVO.setSourceName(user.getName());
-            transferVO.setTargetName(targetUser.getName());
-            transferVO.setSourceAccountId(sourceAccount.getAccountId());
-            transferVO.setTargetAccountId(targetAccount.getAccountId());
-            transferVO.setSourceAccountType(sourceAccount.getAccountType());
-            transferVO.setTargetAccountType(targetAccount.getAccountType());
-            transferVO.setAmount(String.valueOf(transferItem.getAmount()));
-            transferVO.setReason(transferItem.getRemark());
-            Long txId = accountService.transfer(transferVO);
+            TransferDTO transferDTO = new TransferDTO();
+            transferDTO.setSourceName(user.getName());
+            transferDTO.setTargetName(targetUser.getName());
+            transferDTO.setSourceAccountId(sourceAccount.getAccountId());
+            transferDTO.setTargetAccountId(targetAccount.getAccountId());
+            transferDTO.setSourceAccountType(sourceAccount.getAccountType());
+            transferDTO.setTargetAccountType(targetAccount.getAccountType());
+            transferDTO.setAmount(Long.valueOf(transferItem.getAmount()));
+            transferDTO.setReason(transferItem.getRemark());
+            Long txId = accountService.transfer(transferDTO);
 
             if (Objects.isNull(txId)) {
                 throw new BatchTransferException(transferItem.getEmployeeNo(), "转账失败", 

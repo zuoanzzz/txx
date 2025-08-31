@@ -3,10 +3,16 @@
 <mapper namespace="com.bosc.txx.dao.AccountMapper">
 
     <select id="selectByAccountIdForUpdate" parameterType="string" resultMap="AccountMap">
-        SELECT id, account_id, user_id, account_type, balance, deleted, created_by, created_time, update_time, last_login
+        SELECT id, account_id, user_id, account_type, balance, deleted, created_by, created_time, update_time
         FROM account
         WHERE account_id = #{accountId}
         FOR UPDATE
+    </select>
+
+    <select id="selectByAccountId" parameterType="string" resultMap="AccountMap">
+        SELECT id, account_id, user_id, account_type, balance, deleted, created_by, created_time, update_time
+        FROM account
+        WHERE account_id = #{accountId}
     </select>
 
 </mapper>
