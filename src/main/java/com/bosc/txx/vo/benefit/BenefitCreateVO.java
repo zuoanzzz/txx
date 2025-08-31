@@ -6,7 +6,6 @@ import lombok.Data;
 public class BenefitCreateVO {
     private Long id; // update 时需传入 id；create 时可不传
     private String name;
-    private String accountId;
     private String description;
     private Long price;
     private String image;

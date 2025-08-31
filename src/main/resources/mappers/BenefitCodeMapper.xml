@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.bosc.txx.dao.BenefitCodeMapper">
 
-    <select id="listAllBenefitCodes" resultMap="ListAllBenefitCodeDTOMap">
+    <select id="listAllBenefitCodes">
         SELECT
         u.account_id,
         b.id AS benefit_id,
@@ -19,7 +19,7 @@
     </select>
 
     <!-- 根据 userId 分页查询兑换码 -->
-    <select id="listByUserIdPage" resultType="com.bosc.txx.dto.ListAllBenefitCodeDTO">
+    <select id="listByUserIdPage">
         SELECT
         b.account_id AS accountId,
         bc.benefit_id AS benefitId,

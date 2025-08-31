@@ -7,7 +7,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/stablecoin?serverTimezone=GMT%2B8
     username: root
-    password: root
+    password: 123456
     druid:
       # 初始化时建立物理连接的个数
       initial-size: 5
@@ -69,6 +69,8 @@ mybatis-plus:
       logic-delete-field: deleted # 逻辑删除字段
       logic-delete-value: 1 # 已删除的值
       logic-not-delete-value: 0 # 未删除的值
+  mapper-locations: classpath:mappers/*.xml
+
 
 server:
   servlet:

@@ -2,14 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.bosc.txx.dao.AccountMapper">
 
-    <select id="selectByAccountIdForUpdate" parameterType="string" resultMap="AccountMap">
+    <select id="selectByAccountIdForUpdate">
         SELECT id, account_id, user_id, account_type, balance, deleted, created_by, created_time, update_time
         FROM account
         WHERE account_id = #{accountId}
         FOR UPDATE
     </select>
 
-    <select id="selectByAccountId" parameterType="string" resultMap="AccountMap">
+    <select id="selectByAccountId">
         SELECT id, account_id, user_id, account_type, balance, deleted, created_by, created_time, update_time
         FROM account
         WHERE account_id = #{accountId}

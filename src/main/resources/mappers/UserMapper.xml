@@ -3,7 +3,7 @@
 <mapper namespace="com.bosc.txx.dao.UserMapper">
 
     <!-- 根据 accountId 查询用户 -->
-    <select id="selectUserByAccountId" parameterType="string" resultType="com.example.entity.User">
+    <select id="selectUserByAccountId" resultType="com.bosc.txx.model.User">
         SELECT u.*
         FROM account a
         JOIN user u ON a.user_id = u.id
@@ -12,10 +12,10 @@
         LIMIT 1
     </select>
 
-    <select id="selectUserByEmployeeNo" parameterType="string" resultType="com.example.entity.User">
+    <select id="selectUserByEmployeeNo" resultType="com.bosc.txx.model.User">
         SELECT u.*
         FROM user u
-        WHERE u.employeeNo = #{employeeNo}
+        WHERE u.employee_no = #{employeeNo}
     </select>
-
+    
 </mapper>

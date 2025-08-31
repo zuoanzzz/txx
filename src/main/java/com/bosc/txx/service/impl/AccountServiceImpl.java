@@ -68,13 +68,14 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
             this_user.setEmployeeNo(request.getEmployeeNo());
             this_user.setName(request.getName());
             this_user.setDepartment(request.getDepartment());
-            user.setCreatedTime(LocalDateTime.now());
-            user.setUpdatedTime(LocalDateTime.now());
+            this_user.setCreatedTime(LocalDateTime.now());
+            this_user.setUpdatedTime(LocalDateTime.now());
 
             //设置初始密码
             this_user.setPassword(encryptPassword());
 
             this_user.setRole("NORMAL");
+            user = this_user;
             userMapper.insert(this_user);
         }
 

@@ -74,7 +74,7 @@ public class TransactionServiceImpl extends ServiceImpl<TransactionMapper, Trans
         
         for (BatchTransferImportExcelVO transferItem : list) {
             // 1. 根据工号查找用户
-            User targetUser = userMapper.selectByEmployeeNo(transferItem.getEmployeeNo());
+            User targetUser = userMapper.selectUserByEmployeeNo(transferItem.getEmployeeNo());
             if (targetUser == null) {
                 throw new BatchTransferException(transferItem.getEmployeeNo(), "用户不存在", 
                     "根据工号未找到对应的用户");
