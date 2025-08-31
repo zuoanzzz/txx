@@ -23,7 +23,7 @@ public class WorkController {
     @Autowired
     private IWorkService workService;
 
-    @GetMapping("/listAll")
+    @PostMapping("/listAll")
     public CommonResult<ListAllWorkResp> listAll(@RequestBody ListAllWorkReq req) {
         ListAllWorkResp listAllWorkResp = workService.listAll(req);
         return CommonResult.success(listAllWorkResp);
