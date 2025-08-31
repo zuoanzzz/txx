@@ -18,6 +18,7 @@
 ### 需要check
 - 删除活动需要确认，删除活动则删除所有作品
 - lastlogin移动到user表
+- 工号、account_id、user_id建unique
 
 
 
