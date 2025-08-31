@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.model.Activity;
 import com.bosc.txx.service.IActivityService;
+import com.bosc.txx.util.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,8 +31,11 @@ public class ActivityController {
     @Autowired
     private IActivityService activityService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @PostMapping("/create")
-    public CommonResult<Activity> create(@RequestBody Activity activity) {
+    public CommonResult<Activity> create(@RequestBody Activity activity, HttpServletRequest request) {
         if (activity.getName() == null || activity.getName().isEmpty()) {
             return CommonResult.success(ACTIVITY_NAME_EMPTY.getCode(), null, ACTIVITY_NAME_EMPTY.getDescription());
         }
@@ -40,7 +45,8 @@ public class ActivityController {
             return CommonResult.success(ACTIVITY_NAME_DUPLICATED.getCode(), null, ACTIVITY_NAME_DUPLICATED.getDescription());
         }
 
-        boolean ok = activityService.save(activity);
+        String token = jwtUtil.extractTokenFromHeader(request.getHeader("Authorization"));
+        boolean ok = activityService.createActivityAccount(activity, jwtUtil.getUserIdFromToken(token));
         return ok ? CommonResult.success() : CommonResult.failed();
     }
 

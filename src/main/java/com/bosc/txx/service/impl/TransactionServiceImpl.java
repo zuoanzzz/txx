@@ -61,13 +61,14 @@ public class TransactionServiceImpl extends ServiceImpl<TransactionMapper, Trans
     @Transactional(rollbackFor = Exception.class)   // 异常回滚所有导入
     @Async
     @Override
-    public void importDataAsync(List<BatchTransferImportExcelVO> list, User user) {
+    public void importDataAsync(List<BatchTransferImportExcelVO> list, Long createdBy) {
         if (list == null || list.isEmpty()) {
             return;
         }
         
         // 获取系统账户ID（用于批量转账的源账户）
-        Account sourceAccount = accountMapper.selectById(user);
+        Account sourceAccount = accountMapper.selectById(createdBy);
+        User sourceUser = userMapper.selectById(createdBy);
         if (sourceAccount == null) {
             throw new BatchTransferException("系统账户不存在，无法执行批量转账");
         }
@@ -82,7 +83,7 @@ public class TransactionServiceImpl extends ServiceImpl<TransactionMapper, Trans
             
             // 2. 根据用户ID查找个人账户
             Account targetAccount = accountMapper.selectOne(new QueryWrapper<Account>()
-                    .eq("user_id", user.getId()));
+                    .eq("user_id", sourceUser.getId()));
             if (targetAccount == null) {
                 throw new BatchTransferException(transferItem.getEmployeeNo(), "账户不存在", 
                     "用户没有对应的个人账户");
@@ -90,7 +91,7 @@ public class TransactionServiceImpl extends ServiceImpl<TransactionMapper, Trans
 
             // 执行转账操作
             TransferDTO transferDTO = new TransferDTO();
-            transferDTO.setSourceName(user.getName());
+            transferDTO.setSourceName(sourceUser.getName());
             transferDTO.setTargetName(targetUser.getName());
             transferDTO.setSourceAccountId(sourceAccount.getAccountId());
             transferDTO.setTargetAccountId(targetAccount.getAccountId());
