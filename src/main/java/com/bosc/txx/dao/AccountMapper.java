@@ -16,5 +16,7 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface AccountMapper extends BaseMapper<Account> {
 
-        Account selectByAccountIdForUpdate(@Param("accountId") String accountId);
+    Account selectByAccountId(@Param("accountId") String accountId);
+
+    Account selectByAccountIdForUpdate(@Param("accountId") String accountId);
 }

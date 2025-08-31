@@ -10,11 +10,11 @@ import com.bosc.txx.model.Benefit;
 import com.bosc.txx.model.BenefitCode;
 import com.bosc.txx.dao.BenefitCodeMapper;
 import com.bosc.txx.model.User;
+import com.bosc.txx.model.dto.account.TransferDTO;
 import com.bosc.txx.model.dto.benefitcode.ListAllBenefitCodeDTO;
 import com.bosc.txx.service.IAccountService;
 import com.bosc.txx.service.IBenefitCodeService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.bosc.txx.vo.account.TransferVO;
 import com.bosc.txx.vo.benefitcode.BenefitCodeCheckVO;
 import com.bosc.txx.vo.benefitcode.BenefitCodeExchangeVO;
 import com.bosc.txx.vo.benefitcode.ListAllBenefitCodeVO;
@@ -81,18 +81,18 @@ public class BenefitCodeServiceImpl extends ServiceImpl<BenefitCodeMapper, Benef
         User user = userMapper.selectUserByAccountId(request.getAccountId());
 
         // 3. 调用 transfer 完成交易
-        TransferVO transferVO = new TransferVO();
-        transferVO.setSourceAccountId(request.getAccountId());
-        transferVO.setSourceAccountType("PERSONAL");
-        transferVO.setSourceName(user.getName()); // 可从账户表查
-        transferVO.setTargetAccountId(benefit.getAccountId());
-        transferVO.setTargetAccountType("BENEFIT");
-        transferVO.setTargetName(benefit.getName());
-        transferVO.setAmount(String.valueOf(benefit.getPrice() * count));
-        transferVO.setReason("兑换权益：" + benefit.getName());
-        transferVO.setUserId(request.getUserId());
+        TransferDTO transferDTO = new TransferDTO();
+        transferDTO.setSourceAccountId(request.getAccountId());
+        transferDTO.setSourceAccountType("PERSONAL");
+        transferDTO.setSourceName(user.getName()); // 可从账户表查
+        transferDTO.setTargetAccountId(benefit.getAccountId());
+        transferDTO.setTargetAccountType("BENEFIT");
+        transferDTO.setTargetName(benefit.getName());
+        transferDTO.setAmount(benefit.getPrice() * count);
+        transferDTO.setReason("兑换权益：" + benefit.getName());
+        transferDTO.setCreatedBy(request.getUserId());
 
-        Long txId = accountService.transfer(transferVO);
+        Long txId = accountService.transfer(transferDTO);
         if (Objects.isNull(txId)) {
             return CommonResult.failed();
         }

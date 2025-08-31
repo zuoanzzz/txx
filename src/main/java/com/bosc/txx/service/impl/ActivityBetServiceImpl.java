@@ -9,10 +9,10 @@ import com.bosc.txx.model.ActivityBet;
 import com.bosc.txx.dao.ActivityBetMapper;
 import com.bosc.txx.model.User;
 import com.bosc.txx.model.dto.ActivityBet.ActivityBetReq;
+import com.bosc.txx.model.dto.account.TransferDTO;
 import com.bosc.txx.service.IAccountService;
 import com.bosc.txx.service.IActivityBetService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.bosc.txx.vo.account.TransferVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,16 +52,16 @@ public class ActivityBetServiceImpl extends ServiceImpl<ActivityBetMapper, Activ
         User targetUser = userMapper.selectById(targetAccount.getUserId());
 
         // 执行转账操作
-        TransferVO transferVO = new TransferVO();
-        transferVO.setSourceName(sourceUser.getName());
-        transferVO.setTargetName(targetUser.getName());
-        transferVO.setSourceAccountId(sourceAccount.getAccountId());
-        transferVO.setTargetAccountId(targetAccount.getAccountId());
-        transferVO.setSourceAccountType(sourceAccount.getAccountType());
-        transferVO.setTargetAccountType(targetAccount.getAccountType());
-        transferVO.setAmount(String.valueOf(activityBetReq.getAmount()));
-        transferVO.setReason("投注");
-        Long txId = accountService.transfer(transferVO);
+        TransferDTO transferDTO = new TransferDTO();
+        transferDTO.setSourceName(sourceUser.getName());
+        transferDTO.setTargetName(targetUser.getName());
+        transferDTO.setSourceAccountId(sourceAccount.getAccountId());
+        transferDTO.setTargetAccountId(targetAccount.getAccountId());
+        transferDTO.setSourceAccountType(sourceAccount.getAccountType());
+        transferDTO.setTargetAccountType(targetAccount.getAccountType());
+        transferDTO.setAmount(activityBetReq.getAmount());
+        transferDTO.setReason("投注");
+        Long txId = accountService.transfer(transferDTO);
         if (Objects.isNull(txId)) {
             throw new BatchTransferException("执行转账操作时发生错误");
         }
