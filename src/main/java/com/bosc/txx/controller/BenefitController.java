@@ -26,7 +26,7 @@ public class BenefitController {
     @Autowired
     private IBenefitService benefitService;
 
-    @GetMapping("/listAll")
+    @PostMapping("/listAll")
     public CommonResult<List<Benefit>> listAll(@RequestBody ListAllBenefitVO request) {
         if (request.getPageNum() == null) {
             request.setPageNum(1);
@@ -43,7 +43,7 @@ public class BenefitController {
         return benefitService.createBenefit(vo);
     }
 
-    @PutMapping("/update/{id}")
+    @PostMapping("/update")
     public CommonResult<?> update(@RequestBody BenefitCreateVO vo) {
         return benefitService.updateBenefit(vo);
     }
@@ -54,7 +54,7 @@ public class BenefitController {
     }
 
     // 管理员调用，展示已过期的权益
-    @GetMapping("/getAllBenefit")
+    @PostMapping("/getAllBenefit")
     public CommonResult<List<Benefit>> getAllBenefit(@RequestBody GetAllBenefitVO request) {
         if (request.getPageNum() == null) {
             request.setPageNum(1);

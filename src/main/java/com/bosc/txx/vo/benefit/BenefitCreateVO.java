@@ -14,5 +14,5 @@ public class BenefitCreateVO {
     private Boolean active;
     private String expDate;
 
-    private String userId;
+    private String createdBy;
 }

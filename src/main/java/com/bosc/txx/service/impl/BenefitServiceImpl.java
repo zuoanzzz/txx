@@ -75,25 +75,26 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, Benefit> impl
         benefit.setName(vo.getName());
         benefit.setDescription(vo.getDescription());
         benefit.setPrice(vo.getPrice());
-        benefit.setImage(Long.valueOf(vo.getImage()));
+        benefit.setImage(vo.getImage());
         benefit.setTotal(vo.getTotal());
         benefit.setRemain(vo.getTotal());
         benefit.setExpDate(LocalDateTime.parse(vo.getExpDate()));
         benefit.setActive(Boolean.TRUE);
 
         // 3. 系统字段填充
-        benefit.setDeleted(false);
-        benefit.setCreatedBy(Long.valueOf(vo.getUserId()));
+        benefit.setDeleted(Boolean.FALSE);
+        benefit.setCreatedBy(Long.valueOf(vo.getCreatedBy()));
+        benefit.setActive(Boolean.TRUE);
         benefit.setCreatedTime(LocalDateTime.now());
         benefit.setUpdatedTime(LocalDateTime.now());
 
         // 4.为权益创建账户
         Account account = new Account();
         account.setAccountId(AccountIdGenerator.generateAccountId()); // 可自定义生成规则
-        account.setAccountType("BENEFIT"); // 默认个人账户
+        account.setAccountType("BENEFIT");
         account.setBalance(0L); // 初始余额
         account.setDeleted(false);
-        account.setCreatedBy(Long.valueOf(vo.getUserId()));
+        account.setCreatedBy(Long.valueOf(vo.getCreatedBy()));
         account.setCreatedTime(LocalDateTime.now());
         account.setUpdatedTime(LocalDateTime.now());
         accountMapper.insert(account);
@@ -134,7 +135,7 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, Benefit> impl
         benefit.setName(vo.getName());
         benefit.setDescription(vo.getDescription());
         benefit.setPrice(vo.getPrice());
-        benefit.setImage(Long.valueOf(vo.getImage()));
+        benefit.setImage(vo.getImage());
         benefit.setTotal(vo.getTotal());
         benefit.setRemain(vo.getRemain());
         benefit.setExpDate(LocalDateTime.parse(vo.getExpDate()));
@@ -157,12 +158,11 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, Benefit> impl
         }
 
         // 2. 设置逻辑删除标志
-        benefit.setDeleted(true);
-        benefit.setUpdatedTime(LocalDateTime.now());
+        int result = benefitMapper.deleteById(id);
 
-        // 3. 更新数据库
-        benefitMapper.updateById(benefit);
-
+        if(result == 0) {
+            return CommonResult.failed();
+        }
         return CommonResult.success("删除权益成功");
     }
 

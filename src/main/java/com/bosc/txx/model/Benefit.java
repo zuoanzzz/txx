@@ -59,7 +59,7 @@ public class Benefit implements Serializable {
      * 图片资源ID
      */
     @TableField("image")
-    private Long image;
+    private String image;
 
     /**
      * 总数量
