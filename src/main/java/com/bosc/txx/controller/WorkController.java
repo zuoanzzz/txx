@@ -47,4 +47,13 @@ public class WorkController {
         return ok ? CommonResult.success(true) : CommonResult.failed();
     }
 
+    @GetMapping("/getById/{id}")
+    public CommonResult<Work> getById(@PathVariable Long id) {
+        Work work = workService.getById(id);
+        if(work == null) {
+            return CommonResult.failed();
+        }
+        return CommonResult.success(work);
+    }
+
 }
