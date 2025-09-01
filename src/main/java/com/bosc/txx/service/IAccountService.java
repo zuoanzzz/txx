@@ -26,6 +26,8 @@ public interface IAccountService extends IService<Account> {
 
     CommonResult<List<Account>> listAllAccounts(ListAllAccountVO request);
 
+    Account getByUserId(Long userId);
+
     Long transfer(TransferDTO transRequest);
 
     CommonResult<?> importAccounts(MultipartFile file);

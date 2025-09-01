@@ -131,6 +131,11 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     @Override
+    public Account getByUserId(Long userId) {
+        return accountMapper.selectByUserId(userId);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public Long transfer(TransferDTO transRequest) {
         LocalDateTime start_time = LocalDateTime.now();

@@ -71,6 +71,18 @@ public class AccountController {
     }
 
     /**
+     * 根据userId查询账户信息
+     */
+    @PostMapping("/getByUserId/{userId}")
+    public CommonResult<Account> getByUserId(@PathVariable Long userId){
+        Account result = iaccountService.getByUserId(userId);
+        if(result == null) {
+            return CommonResult.failed();
+        }
+        return CommonResult.success(result);
+    }
+
+    /**
      * 交易接口（转账、流水）
      */
     @PostMapping("/trans")
