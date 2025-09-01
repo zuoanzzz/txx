@@ -67,7 +67,8 @@ public class TransactionServiceImpl extends ServiceImpl<TransactionMapper, Trans
         }
         
         // 获取系统账户ID（用于批量转账的源账户）
-        Account sourceAccount = accountMapper.selectById(createdBy);
+        Account sourceAccount = accountMapper.selectOne(new QueryWrapper<Account>()
+                .eq("user_id", createdBy));
         User sourceUser = userMapper.selectById(createdBy);
         if (sourceAccount == null) {
             throw new BatchTransferException("系统账户不存在，无法执行批量转账");
