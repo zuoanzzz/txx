@@ -147,6 +147,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         result.setEmail(user.getEmail());
         result.setPhone(user.getPhone());
         result.setRole(user.getRole());
+        result.setCreatedTime(user.getCreatedTime());
+        result.setUpdatedTime(user.getUpdatedTime());
+        result.setLastLogin(user.getLastLogin());
 
         result.setAccountId(account.getAccountId());
         result.setAccountType(account.getAccountType());
