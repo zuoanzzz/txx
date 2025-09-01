@@ -7,6 +7,7 @@ import com.bosc.txx.dao.AccountMapper;
 import com.bosc.txx.dao.UserMapper;
 import com.bosc.txx.model.User;
 import com.bosc.txx.model.dto.account.TransferDTO;
+import com.bosc.txx.model.dto.account.UserInfoDTO;
 import com.bosc.txx.util.ExcelUtils;
 import com.bosc.txx.vo.account.AccountCreateVO;
 import com.bosc.txx.vo.account.ListAllAccountVO;
@@ -74,8 +75,8 @@ public class AccountController {
      * 根据userId查询账户信息
      */
     @PostMapping("/getByUserId/{userId}")
-    public CommonResult<Account> getByUserId(@PathVariable Long userId){
-        Account result = iaccountService.getByUserId(userId);
+    public CommonResult<UserInfoDTO> getByUserId(@PathVariable Long userId){
+        UserInfoDTO result = iaccountService.getByUserId(userId);
         if(result == null) {
             return CommonResult.failed();
         }

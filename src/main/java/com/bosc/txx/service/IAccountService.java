@@ -2,6 +2,7 @@ package com.bosc.txx.service;
 
 import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.model.dto.account.TransferDTO;
+import com.bosc.txx.model.dto.account.UserInfoDTO;
 import com.bosc.txx.vo.account.AccountCreateVO;
 import com.bosc.txx.vo.account.ListAllAccountVO;
 import com.bosc.txx.model.Account;
@@ -26,7 +27,7 @@ public interface IAccountService extends IService<Account> {
 
     CommonResult<List<Account>> listAllAccounts(ListAllAccountVO request);
 
-    Account getByUserId(Long userId);
+    UserInfoDTO getByUserId(Long userId);
 
     Long transfer(TransferDTO transRequest);
 

@@ -7,6 +7,7 @@ import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.dao.TransactionMapper;
 import com.bosc.txx.dao.UserMapper;
 import com.bosc.txx.model.dto.account.TransferDTO;
+import com.bosc.txx.model.dto.account.UserInfoDTO;
 import com.bosc.txx.vo.account.AccountCreateVO;
 import com.bosc.txx.vo.account.ListAllAccountVO;
 import com.bosc.txx.model.Account;
@@ -131,8 +132,27 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     @Override
-    public Account getByUserId(Long userId) {
-        return accountMapper.selectByUserId(userId);
+    public UserInfoDTO getByUserId(Long userId) {
+        User user = userMapper.selectById(userId);
+        Account account = accountMapper.selectByUserId(userId);
+
+        if (user == null || account == null) {
+            return null;
+        }
+
+        UserInfoDTO result = new UserInfoDTO();
+        result.setEmployeeNo(user.getEmployeeNo());
+        result.setName(user.getName());
+        result.setDepartment(user.getDepartment());
+        result.setEmail(user.getEmail());
+        result.setPhone(user.getPhone());
+        result.setRole(user.getRole());
+
+        result.setAccountId(account.getAccountId());
+        result.setAccountType(account.getAccountType());
+        result.setBalance(account.getBalance());
+
+        return result;
     }
 
     @Override
