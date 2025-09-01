@@ -8,6 +8,7 @@ import com.bosc.txx.dao.ActivityMapper;
 import com.bosc.txx.model.Account;
 import com.bosc.txx.model.Activity;
 import com.bosc.txx.service.IActivityService;
+import com.bosc.txx.util.AccountIdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +44,8 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
         Account account = new Account();
         account.setCreatedBy(userId);
         account.setAccountType("ACTIVITY");
+        account.setAccountId(AccountIdGenerator.generateAccountId());
+        account.setUserId(Long.valueOf(AccountIdGenerator.generateAccountId()));
         accountMapper.insert(account);
 
         activity.setAccountId(account.getId());
