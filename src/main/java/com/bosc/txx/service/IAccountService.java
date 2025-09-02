@@ -1,6 +1,7 @@
 package com.bosc.txx.service;
 
 import com.bosc.txx.common.CommonResult;
+import com.bosc.txx.controller.vo.transaction.BatchAccountImportExcelVO;
 import com.bosc.txx.model.dto.account.TransferDTO;
 import com.bosc.txx.model.dto.account.UserInfoDTO;
 import com.bosc.txx.vo.account.AccountCreateVO;
@@ -32,4 +33,6 @@ public interface IAccountService extends IService<Account> {
     Long transfer(TransferDTO transRequest);
 
     CommonResult<?> importAccounts(MultipartFile file);
+
+    void importDataAsync(List<BatchAccountImportExcelVO> list, Long userIdFromToken);
 }

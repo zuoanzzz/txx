@@ -9,12 +9,14 @@ import com.bosc.txx.model.User;
 import com.bosc.txx.model.dto.account.TransferDTO;
 import com.bosc.txx.model.dto.account.UserInfoDTO;
 import com.bosc.txx.util.ExcelUtils;
+import com.bosc.txx.util.JwtUtil;
 import com.bosc.txx.vo.account.AccountCreateVO;
 import com.bosc.txx.vo.account.ListAllAccountVO;
 import com.bosc.txx.vo.account.TransferVO;
 import com.bosc.txx.model.Account;
 import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.service.IAccountService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -45,6 +47,9 @@ public class AccountController {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     /**
      * 新增账户
@@ -137,6 +142,20 @@ public class AccountController {
             return CommonResult.failed();
         }
         return iaccountService.importAccounts(file);
+    }
+
+    /**
+     * 批量发放-excel
+     * @param file
+     * @return
+     * @throws IOException
+     */
+    @PostMapping("/import-excel")
+    public CommonResult<Boolean> importExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) throws IOException {
+        List<BatchAccountImportExcelVO> list = ExcelUtils.read(file, BatchAccountImportExcelVO.class);
+        String token = jwtUtil.extractTokenFromHeader(request.getHeader("Authorization"));
+        iaccountService.importDataAsync(list, jwtUtil.getUserIdFromToken(token));
+        return CommonResult.success(true);
     }
 
     @GetMapping("/getBalance/{userId}")

@@ -19,21 +19,12 @@ import lombok.experimental.Accessors;
 @Accessors(chain = false)
 public class BatchAccountImportExcelVO {
 
-    /**
-     * 工号
-     */
     @ExcelProperty("工号")
     private String employeeNo;
 
-    /**
-     * 发放金额
-     */
     @ExcelProperty("姓名")
     private String name;
 
-    /**
-     * 事由（备注）
-     */
     @ExcelProperty("部门")
     private String department;
 

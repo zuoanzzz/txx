@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bosc.txx.common.CommonResult;
+import com.bosc.txx.controller.vo.transaction.BatchAccountImportExcelVO;
 import com.bosc.txx.dao.TransactionMapper;
 import com.bosc.txx.dao.UserMapper;
 import com.bosc.txx.model.dto.account.TransferDTO;
@@ -64,7 +65,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         System.out.println("开始创建user");
         // 1.查user，若无则插入记录
         User user = userMapper.selectUserByEmployeeNo(request.getEmployeeNo());
-        if(user == null) {
+        if (user == null) {
             User this_user = new User();
             this_user.setEmployeeNo(request.getEmployeeNo());
             this_user.setName(request.getName());
@@ -126,7 +127,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         Page<Account> page = new Page<>(request.getPageNum(), request.getPageSize());
         QueryWrapper<Account> query = new QueryWrapper<>();
         query.eq("deleted", false);
-        IPage<Account> accounts = accountMapper.selectPage(page,query);
+        IPage<Account> accounts = accountMapper.selectPage(page, query);
 
         return CommonResult.success(accounts.getRecords());
     }
@@ -309,7 +310,6 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
 
-
     @Transactional
     public CommonResult<?> importAccounts(MultipartFile file) {
         try (BufferedReader reader = new BufferedReader(
@@ -368,6 +368,40 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         } catch (IOException e) {
             e.printStackTrace();
             return CommonResult.failed();
+        }
+    }
+
+    @Override
+    @Transactional
+    public void importDataAsync(List<BatchAccountImportExcelVO> list, Long userIdFromToken) {
+        // 批量插入用户
+        if (!list.isEmpty()) {
+            List<Account> accounts = new ArrayList<>();
+            for (BatchAccountImportExcelVO batchAccountImportExcelVO : list) {
+                // 创建用户
+                User user = new User();
+                user.setName(batchAccountImportExcelVO.getName());
+                user.setEmployeeNo(batchAccountImportExcelVO.getEmployeeNo());
+                user.setDepartment(batchAccountImportExcelVO.getDepartment());
+                user.setPassword(md5Hex(DEFAULT_PASSWORD));
+                user.setRole("NORMAL");
+                userMapper.insert(user);
+
+                // 创建对应账户
+                Account account = new Account();
+                account.setUserId(user.getId());
+                account.setAccountId(AccountIdGenerator.generateAccountId());
+                account.setAccountType("PERSONAL");
+                account.setBalance(0L);
+                account.setDeleted(false);
+                account.setCreatedBy(userIdFromToken);
+                accounts.add(account);
+            }
+
+            // 批量插入账户
+            for (Account account : accounts) {
+                accountMapper.insert(account);
+            }
         }
     }
 }
