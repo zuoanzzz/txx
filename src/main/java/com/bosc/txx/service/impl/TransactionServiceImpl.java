@@ -84,7 +84,7 @@ public class TransactionServiceImpl extends ServiceImpl<TransactionMapper, Trans
             
             // 2. 根据用户ID查找个人账户
             Account targetAccount = accountMapper.selectOne(new QueryWrapper<Account>()
-                    .eq("user_id", sourceUser.getId()));
+                    .eq("user_id", targetUser.getId()));
             if (targetAccount == null) {
                 throw new BatchTransferException(transferItem.getEmployeeNo(), "账户不存在", 
                     "用户没有对应的个人账户");

@@ -29,12 +29,16 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loggingInterceptor)
-                .addPathPatterns("/**");
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/account/get-import-template",
+                        "/transaction/get-import-template"
+                );
 
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
-                        "/user/login",
+                        "/user",
                         "/error",
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
@@ -43,7 +47,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/static/**",
                         "/css/**",
                         "/js/**",
-                        "/images/**"
+                        "/images/**",
+                        "/account/get-import-template",
+                        "/transaction/get-import-template"  // 排除文件下载模板接口
                 );
 
     }

@@ -3,7 +3,6 @@ package com.bosc.txx.controller;
 import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.controller.vo.transaction.BatchTransferImportExcelVO;
 import com.bosc.txx.model.Transaction;
-import com.bosc.txx.model.User;
 import com.bosc.txx.service.ITransactionService;
 import com.bosc.txx.util.ExcelUtils;
 import com.bosc.txx.util.JwtUtil;

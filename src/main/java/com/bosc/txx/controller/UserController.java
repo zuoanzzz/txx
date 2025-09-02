@@ -62,11 +62,8 @@ public class UserController {
 
     @PostMapping("/changePassword")
     public CommonResult<Boolean> changePassword(@RequestBody ChangePasswordRequest request, HttpServletRequest httpRequest) {
-        Long userId = (Long) httpRequest.getAttribute("userId");
-        if (userId == null) {
-            return CommonResult.failed();
-        }
-        
+        String token = jwtUtil.extractTokenFromHeader(httpRequest.getHeader("Authorization"));
+        Long userId = jwtUtil.getUserIdFromToken(token);
         User user = userService.getById(userId);
         if (user == null) {
             return CommonResult.failed();
