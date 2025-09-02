@@ -71,7 +71,9 @@ public class ActivityBetServiceImpl extends ServiceImpl<ActivityBetMapper, Activ
         if (Objects.isNull(txId)) {
             throw new BatchTransferException("执行转账操作时发生错误");
         }
-        sourceAccount.setBalance(sourceAccount.getBalance() + activityBetReq.getUsedFreeAmount());
+
+        long change = activityBetReq.getAmount() - activityBetReq.getUsedFreeAmount();
+        sourceAccount.setBalance(sourceAccount.getBalance() + change);
         int update = accountMapper.updateById(sourceAccount);
         if (update == 0) {
             throw new BatchTransferException("执行转账操作时发生错误");
