@@ -88,25 +88,25 @@ public class AccountController {
      */
     @PostMapping("/trans")
     public CommonResult<Long> transfer(@RequestBody TransferVO transRequest) {
-        Account srcAccount = accountMapper.selectByUserId(transRequest.getCreatedBy());
-        TransferDTO request = new TransferDTO();
-        Account src = accountMapper.selectByAccountId(srcAccount.getAccountId());
-        Account tgt = accountMapper.selectByAccountId(transRequest.getTargetAccountId());
+        User tgtUser = userMapper.selectUserByEmployeeNo(transRequest.getTargetEmployeeNo());
 
-        if("PERSONAL".equals(src.getAccountType())) {
-            User srcUser = userMapper.selectById(src.getUserId());
+        TransferDTO request = new TransferDTO();
+        Account srcAccount = accountMapper.selectByUserId(transRequest.getCreatedBy());
+        Account tgtAccount = accountMapper.selectByUserId(tgtUser.getId());
+
+        if("PERSONAL".equals(srcAccount.getAccountType())) {
+            User srcUser = userMapper.selectById(srcAccount.getUserId());
             request.setSourceName(srcUser.getName());
         }
 
-        if("PERSONAL".equals(tgt.getAccountType())) {
-            User tgtUser = userMapper.selectById(tgt.getUserId());
+        if("PERSONAL".equals(tgtAccount.getAccountType())) {
             request.setTargetName(tgtUser.getName());
         }
 
         request.setSourceAccountId(srcAccount.getAccountId());
-        request.setSourceAccountType(src.getAccountType());
-        request.setTargetAccountId(transRequest.getTargetAccountId());
-        request.setTargetAccountType(tgt.getAccountType());
+        request.setSourceAccountType(srcAccount.getAccountType());
+        request.setTargetAccountId(tgtAccount.getAccountId());
+        request.setTargetAccountType(tgtAccount.getAccountType());
 
         request.setAmount(transRequest.getAmount());
         request.setReason(transRequest.getReason());
