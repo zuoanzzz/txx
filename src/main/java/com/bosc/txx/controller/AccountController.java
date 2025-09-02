@@ -138,4 +138,13 @@ public class AccountController {
         }
         return iaccountService.importAccounts(file);
     }
+
+    @GetMapping("/getBalance/{userId}")
+    public CommonResult<Long> getBalance(@PathVariable Long userId){
+        Account account = accountMapper.selectByUserId(userId);
+        if(account == null) {
+            return CommonResult.failed();
+        }
+        return CommonResult.success(account.getBalance());
+    }
 }

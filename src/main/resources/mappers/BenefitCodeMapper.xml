@@ -11,7 +11,8 @@
         WHEN 'VALID' THEN 1
         ELSE 0
         END as status,
-        c.code
+        c.code,
+        c.exp_date
         FROM benefit_code c
         LEFT JOIN benefit b ON c.benefit_id = b.id
         LEFT JOIN user u ON c.user_id = u.id
@@ -28,7 +29,8 @@
         WHEN 'VALID' THEN 1
         ELSE 0
         END as status,
-        c.code
+        c.code,
+        c.exp_date
         FROM benefit_code c
         LEFT JOIN benefit b ON c.benefit_id = b.id
         LEFT JOIN user u ON c.user_id = u.id
