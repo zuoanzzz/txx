@@ -11,8 +11,6 @@ import lombok.Data;
 @Data
 public class ActivityBetReq {
 
-    private User user;
-
     /**
      * 活动ID
      */

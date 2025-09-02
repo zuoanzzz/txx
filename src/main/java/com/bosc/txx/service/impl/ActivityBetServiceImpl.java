@@ -43,8 +43,8 @@ public class ActivityBetServiceImpl extends ServiceImpl<ActivityBetMapper, Activ
     private ActivityBetMapper activityBetMapper;
 
     @Override
-    public Boolean bet(ActivityBetReq activityBetReq) {
-        User sourceUser = activityBetReq.getUser();
+    public Boolean bet(ActivityBetReq activityBetReq, Long userId) {
+        User sourceUser = userMapper.selectById(userId);
         Account sourceAccount = accountMapper.selectOne(new QueryWrapper<Account>()
                 .eq("user_id", sourceUser.getId()));
         Account targetAccount = accountMapper.selectOne(new QueryWrapper<Account>()
