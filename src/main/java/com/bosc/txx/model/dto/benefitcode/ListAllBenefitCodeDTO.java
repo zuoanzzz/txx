@@ -2,11 +2,14 @@ package com.bosc.txx.model.dto.benefitcode;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class ListAllBenefitCodeDTO {
     private String accountId;
-    private String benefitId;
+    private Long benefitId;
     private String benefitName;
-    private Boolean status;
+    private Integer status;
     private String code;
+    private LocalDateTime expDate;
 }
