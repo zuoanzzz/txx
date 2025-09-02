@@ -18,7 +18,8 @@ import java.util.List;
  * @since 2025-08-25
  */
 public interface BenefitCodeMapper extends BaseMapper<BenefitCode> {
+
     IPage<ListAllBenefitCodeDTO> listAllBenefitCodes(Page<?> page);
 
-    IPage<ListAllBenefitCodeDTO> listByUserIdPage(Page<?> page, @Param("userId") Long userId);
+    IPage<ListAllBenefitCodeDTO> listByUserIdPage(Page<ListAllBenefitCodeDTO> page, @Param("userId") Long userId);
 }
