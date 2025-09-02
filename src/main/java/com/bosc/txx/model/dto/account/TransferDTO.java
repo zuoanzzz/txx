@@ -11,6 +11,7 @@ public class TransferDTO {
     private String targetAccountType;
     private String targetName;
     private Long amount;
+    private Long usedFreeAmount;
     private String reason;
 
     private Long createdBy; //调用人userId

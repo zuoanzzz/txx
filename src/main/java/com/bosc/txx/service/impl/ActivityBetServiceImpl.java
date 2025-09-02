@@ -66,16 +66,10 @@ public class ActivityBetServiceImpl extends ServiceImpl<ActivityBetMapper, Activ
         transferDTO.setSourceAccountType(sourceAccount.getAccountType());
         transferDTO.setTargetAccountType(targetAccount.getAccountType());
         transferDTO.setAmount(activityBetReq.getAmount());
+        transferDTO.setUsedFreeAmount(activityBetReq.getUsedFreeAmount());
         transferDTO.setReason("投注");
         Long txId = accountService.transfer(transferDTO);
         if (Objects.isNull(txId)) {
-            throw new BatchTransferException("执行转账操作时发生错误");
-        }
-
-        long change = activityBetReq.getAmount() - activityBetReq.getUsedFreeAmount();
-        sourceAccount.setBalance(sourceAccount.getBalance() + change);
-        int update = accountMapper.updateById(sourceAccount);
-        if (update == 0) {
             throw new BatchTransferException("执行转账操作时发生错误");
         }
 

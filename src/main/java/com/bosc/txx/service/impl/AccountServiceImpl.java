@@ -227,6 +227,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         // 8. 余额校验（GRANT 不校验）
         if (!"GRANT".equals(txType)) {
             long srcBal = src.getBalance();
+            if ("ACTIVITY_BET".equals(txType)) {
+                srcBal += transRequest.getUsedFreeAmount();
+            }
             if (srcBal < amount) {
                 return null;
             }
@@ -236,7 +239,13 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         try {
             if (!"GRANT".equals(txType)) {
                 long currentSrc = src.getBalance();
-                long newSrc = Math.subtractExact(currentSrc, amount);
+                long newSrc;
+                if ("ACTIVITY_BET".equals(txType)) {
+                    long change = transRequest.getAmount() - transRequest.getUsedFreeAmount();
+                    newSrc = Math.subtractExact(currentSrc, change);
+                } else {
+                    newSrc = Math.subtractExact(currentSrc, amount);
+                }
                 src.setBalance(newSrc);
                 src.setUpdatedTime(LocalDateTime.now());
                 accountMapper.updateById(src);
