@@ -2,9 +2,11 @@ package com.bosc.txx.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.bosc.txx.dao.AccountMapper;
+import com.bosc.txx.dao.ActivityMapper;
 import com.bosc.txx.dao.UserMapper;
 import com.bosc.txx.exception.BatchTransferException;
 import com.bosc.txx.model.Account;
+import com.bosc.txx.model.Activity;
 import com.bosc.txx.model.ActivityBet;
 import com.bosc.txx.dao.ActivityBetMapper;
 import com.bosc.txx.model.User;
@@ -41,14 +43,17 @@ public class ActivityBetServiceImpl extends ServiceImpl<ActivityBetMapper, Activ
 
     @Autowired
     private ActivityBetMapper activityBetMapper;
+    @Autowired
+    private ActivityMapper activityMapper;
 
     @Override
     public Boolean bet(ActivityBetReq activityBetReq, Long userId) {
         User sourceUser = userMapper.selectById(userId);
         Account sourceAccount = accountMapper.selectOne(new QueryWrapper<Account>()
                 .eq("user_id", sourceUser.getId()));
+        Activity activity = activityMapper.selectById(activityBetReq.getActivityId());
         Account targetAccount = accountMapper.selectOne(new QueryWrapper<Account>()
-                .eq("account_id", activityBetReq.getActivityId()));
+                .eq("account_id", activity.getAccountId()));
         User targetUser = userMapper.selectById(targetAccount.getUserId());
 
         // 执行转账操作
