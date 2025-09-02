@@ -52,8 +52,7 @@ public class ActivityBetServiceImpl extends ServiceImpl<ActivityBetMapper, Activ
         Account sourceAccount = accountMapper.selectOne(new QueryWrapper<Account>()
                 .eq("user_id", sourceUser.getId()));
         Activity activity = activityMapper.selectById(activityBetReq.getActivityId());
-        Account targetAccount = accountMapper.selectOne(new QueryWrapper<Account>()
-                .eq("account_id", activity.getAccountId()));
+        Account targetAccount = accountMapper.selectById(activity.getAccountId());
         User targetUser = userMapper.selectById(targetAccount.getUserId());
 
         // 执行转账操作
