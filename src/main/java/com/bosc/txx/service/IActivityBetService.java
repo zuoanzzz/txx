@@ -14,5 +14,5 @@ import com.bosc.txx.model.dto.ActivityBet.ActivityBetReq;
  */
 public interface IActivityBetService extends IService<ActivityBet> {
 
-    Boolean bet(ActivityBetReq activityBetReq);
+    Boolean bet(ActivityBetReq activityBetReq, Long userId);
 }
