@@ -18,6 +18,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
@@ -47,6 +48,7 @@ public class ActivityBetServiceImpl extends ServiceImpl<ActivityBetMapper, Activ
     private ActivityMapper activityMapper;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Boolean bet(ActivityBetReq activityBetReq, Long userId) {
         User sourceUser = userMapper.selectById(userId);
         Account sourceAccount = accountMapper.selectOne(new QueryWrapper<Account>()
@@ -67,6 +69,11 @@ public class ActivityBetServiceImpl extends ServiceImpl<ActivityBetMapper, Activ
         transferDTO.setReason("投注");
         Long txId = accountService.transfer(transferDTO);
         if (Objects.isNull(txId)) {
+            throw new BatchTransferException("执行转账操作时发生错误");
+        }
+        sourceAccount.setBalance(sourceAccount.getBalance() + activityBetReq.getUsedFreeAmount());
+        int update = accountMapper.updateById(sourceAccount);
+        if (update == 0) {
             throw new BatchTransferException("执行转账操作时发生错误");
         }
 
