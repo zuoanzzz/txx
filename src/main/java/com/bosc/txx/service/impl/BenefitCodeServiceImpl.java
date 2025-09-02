@@ -108,7 +108,7 @@ public class BenefitCodeServiceImpl extends ServiceImpl<BenefitCodeMapper, Benef
             BenefitCode code = new BenefitCode();
             code.setBenefitId(benefit.getId());
             code.setCode(codeStr);
-            code.setUserId(Long.parseLong(user.getName())); // 兑换人
+            code.setUserId(user.getId()); // 兑换人
             code.setStatus("VALID");
             code.setExpDate(LocalDateTime.now().plusMonths(6));
             benefitCodeMapper.insert(code);

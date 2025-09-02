@@ -1,6 +1,8 @@
 package com.bosc.txx.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.bosc.txx.common.CommonResult;
+import com.bosc.txx.model.BenefitCode;
 import com.bosc.txx.model.dto.benefitcode.ListAllBenefitCodeDTO;
 import com.bosc.txx.service.IBenefitCodeService;
 import com.bosc.txx.vo.benefitcode.BenefitCodeCheckVO;
@@ -38,7 +40,7 @@ public class BenefitCodeController {
     /**
      * 查询所有兑换码
      */
-    @GetMapping("/listAll")
+    @PostMapping("/listAll")
     public CommonResult<List<ListAllBenefitCodeDTO>> listAll(@RequestBody ListAllBenefitCodeVO request) {
         if (request.getPageNum() == null) {
             request.setPageNum(1);
@@ -50,8 +52,8 @@ public class BenefitCodeController {
         return iBenefitCodeService.listAll(request);
     }
 
-    @GetMapping("/listByUser/{userId}")
-    public CommonResult<List<ListAllBenefitCodeDTO>> listByUserId(@PathVariable ListUserBenefitCodeVO request) {
+    @PostMapping("/listByUser")
+    public CommonResult<List<ListAllBenefitCodeDTO>> listByUserId(@RequestBody ListUserBenefitCodeVO request) {
         if (request.getPageNum() == null) {
             request.setPageNum(1);
         }

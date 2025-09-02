@@ -2,34 +2,38 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.bosc.txx.dao.BenefitCodeMapper">
 
-    <select id="listAllBenefitCodes">
+    <select id="listAllBenefitCodes" resultType="com.bosc.txx.model.dto.benefitcode.ListAllBenefitCodeDTO">
         SELECT
-        u.account_id,
-        b.id AS benefit_id,
-        b.name AS benefit_name,
+        a.account_id,
+        b.id as benefit_id,
+        b.name as benefit_name,
         CASE c.status
         WHEN 'VALID' THEN 1
         ELSE 0
-        END AS status,
+        END as status,
         c.code
         FROM benefit_code c
         LEFT JOIN benefit b ON c.benefit_id = b.id
         LEFT JOIN user u ON c.user_id = u.id
-        WHERE c.deleted = 0
+        LEFT JOIN account a ON u.id = a.user_id
     </select>
 
     <!-- 根据 userId 分页查询兑换码 -->
-    <select id="listByUserIdPage">
+    <select id="listByUserIdPage" resultType="com.bosc.txx.model.dto.benefitcode.ListAllBenefitCodeDTO">
         SELECT
-        b.account_id AS accountId,
-        bc.benefit_id AS benefitId,
-        b.name AS benefitName,
-        CASE WHEN bc.status='REDEEMED' THEN TRUE ELSE FALSE END AS status,
-        bc.code AS code
-        FROM benefit_code bc
-        LEFT JOIN benefit b ON bc.benefit_id = b.id
-        WHERE bc.user_id = #{userId}
-        ORDER BY bc.created_time DESC
+        a.account_id,
+        b.id as benefit_id,
+        b.name as benefit_name,
+        CASE c.status
+        WHEN 'VALID' THEN 1
+        ELSE 0
+        END as status,
+        c.code
+        FROM benefit_code c
+        LEFT JOIN benefit b ON c.benefit_id = b.id
+        LEFT JOIN user u ON c.user_id = u.id
+        LEFT JOIN account a ON u.id = a.user_id
+        WHERE c.user_id = #{userId}
     </select>
 
 </mapper>

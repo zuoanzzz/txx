@@ -91,6 +91,7 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, Benefit> impl
         // 4.为权益创建账户
         Account account = new Account();
         account.setAccountId(AccountIdGenerator.generateAccountId()); // 可自定义生成规则
+        account.setUserId(Long.valueOf(AccountIdGenerator.generateAccountId()));
         account.setAccountType("BENEFIT");
         account.setBalance(0L); // 初始余额
         account.setDeleted(false);

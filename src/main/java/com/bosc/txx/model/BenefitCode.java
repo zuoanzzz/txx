@@ -54,8 +54,8 @@ public class BenefitCode implements Serializable {
     /**
      * 兑换时间
      */
-    @TableField("created_at")
-    private LocalDateTime createdAt;
+    @TableField("created_time")
+    private LocalDateTime createdTime;
 
     /**
      * 过期时间
