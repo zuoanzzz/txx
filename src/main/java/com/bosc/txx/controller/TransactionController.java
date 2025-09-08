@@ -47,25 +47,15 @@ public class TransactionController {
         return CommonResult.success(list);
     }
 
-    @GetMapping("/get-import-template")
-    public void importTemplate(HttpServletResponse response) throws IOException {
-        // 手动创建导出 demo
-        List<BatchTransferImportExcelVO> list = Arrays.asList(
-                BatchTransferImportExcelVO.builder().build());
-        // 输出
-        ExcelUtils.write(response, "批量转账导入模板.xls", "批量转账", BatchTransferImportExcelVO.class, list);
-    }
-
     /**
      * 批量发放-excel
-     * @param file
-     * @return
-     * @throws IOException
      */
     @PostMapping("/import-excel")
-    public CommonResult<Boolean> importExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) throws IOException {
-        List<BatchTransferImportExcelVO> list = ExcelUtils.read(file, BatchTransferImportExcelVO.class);
-
+    public CommonResult<Boolean> importExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        if (file == null || file.isEmpty()) {
+            return CommonResult.failed();
+        }
+        List<BatchTransferImportExcelVO> list = transactionService.parseFile(file);
         String token = jwtUtil.extractTokenFromHeader(request.getHeader("Authorization"));
         transactionService.importDataAsync(list, jwtUtil.getUserIdFromToken(token));
         return CommonResult.success(true);
@@ -79,7 +69,7 @@ public class TransactionController {
      * @throws IOException
      */
     @PostMapping("/import-list")
-    public CommonResult<Boolean> importList(@RequestBody List<BatchTransferImportExcelVO> list, HttpServletRequest request) throws IOException {
+    public CommonResult<Boolean> importList(@RequestBody List<BatchTransferImportExcelVO> list, HttpServletRequest request) {
         String token = jwtUtil.extractTokenFromHeader(request.getHeader("Authorization"));
         transactionService.importDataAsync(list, jwtUtil.getUserIdFromToken(token));
         return CommonResult.success(true);

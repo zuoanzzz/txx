@@ -144,20 +144,6 @@ public class AccountController {
         return iaccountService.importAccounts(file);
     }
 
-    /**
-     * 批量发放-excel
-     * @param file
-     * @return
-     * @throws IOException
-     */
-    @PostMapping("/import-excel")
-    public CommonResult<Boolean> importExcel(@RequestParam("file") MultipartFile file, HttpServletRequest request) throws IOException {
-        List<BatchAccountImportExcelVO> list = ExcelUtils.read(file, BatchAccountImportExcelVO.class);
-        String token = jwtUtil.extractTokenFromHeader(request.getHeader("Authorization"));
-        iaccountService.importDataAsync(list, jwtUtil.getUserIdFromToken(token));
-        return CommonResult.success(true);
-    }
-
     @GetMapping("/getBalance/{userId}")
     public CommonResult<Long> getBalance(@PathVariable Long userId){
         Account account = accountMapper.selectByUserId(userId);

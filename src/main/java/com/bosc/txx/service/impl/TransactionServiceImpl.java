@@ -20,10 +20,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 /**
  * <p>
@@ -110,4 +113,39 @@ public class TransactionServiceImpl extends ServiceImpl<TransactionMapper, Trans
         
         log.info("批量转账完成，共处理 {} 条记录", list.size());
     }
+
+    @Override
+    public List<BatchTransferImportExcelVO> parseFile(MultipartFile file) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+
+            String line;
+            List<BatchTransferImportExcelVO> batchTransferImportExcelVOS = new ArrayList<>();
+            boolean firstLine = true;
+
+            while ((line = reader.readLine()) != null) {
+                if (firstLine) {
+                    firstLine = false; // 跳过表头
+                    continue;
+                }
+                String[] cols = line.split(",");
+                if (cols.length < 3) continue; // 工号、发放金额、事由
+
+                String employeeNo = cols[0].trim();
+                Integer amount = Integer.valueOf(cols[1].trim());
+                String remark = cols[2].trim();
+
+                BatchTransferImportExcelVO batchTransferImportExcelVO = new BatchTransferImportExcelVO();
+                batchTransferImportExcelVO.setEmployeeNo(employeeNo);
+                batchTransferImportExcelVO.setAmount(amount);
+                batchTransferImportExcelVO.setRemark(remark);
+                batchTransferImportExcelVOS.add(batchTransferImportExcelVO);
+            }
+            return batchTransferImportExcelVOS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+
 }
