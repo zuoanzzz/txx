@@ -10,16 +10,12 @@ import java.time.LocalDateTime;
  */
 
 @Data
-public class ActivityBetResult {
+public class ActivityBetWorkResult {
 
     private String activityName;
 
     private String workName;
 
-    private String betName;
-
     private Long betAmount;
-
-    private LocalDateTime betDate;
 
 }

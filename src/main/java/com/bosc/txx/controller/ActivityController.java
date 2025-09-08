@@ -129,9 +129,9 @@ public class ActivityController {
         Sheet userSheet = workbook.createSheet("用户投注信息明细");
         activityService.createUserSheet(id, userSheet, headerStyle);
 
-//        // 创建第二个Sheet：作品投注金额概览
-//        Sheet workSheet = workbook.createSheet("作品投注金额概览");
-//        activityService.createWorkSheet(id, workSheet, headerStyle);
+        // 创建第二个Sheet：作品投注金额概览
+        Sheet workSheet = workbook.createSheet("作品投注金额概览");
+        activityService.createWorkSheet(id, workSheet, headerStyle);
 
         // 写入响应输出流
         workbook.write(response.getOutputStream());
