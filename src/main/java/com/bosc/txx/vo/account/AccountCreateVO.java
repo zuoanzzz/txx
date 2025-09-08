@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class AccountCreateVO {
-    private String createdBy;
+    private Long createdBy;
     private String employeeNo;  // 工号
     private String name;        // 姓名
     private String department;  // 部门

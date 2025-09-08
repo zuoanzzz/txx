@@ -3,9 +3,11 @@ package com.bosc.txx.controller;
 import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.model.Benefit;
 import com.bosc.txx.service.IBenefitService;
+import com.bosc.txx.util.JwtUtil;
 import com.bosc.txx.vo.benefit.BenefitCreateVO;
 import com.bosc.txx.vo.benefit.GetAllBenefitVO;
 import com.bosc.txx.vo.benefit.ListAllBenefitVO;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +28,9 @@ public class BenefitController {
     @Autowired
     private IBenefitService benefitService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @PostMapping("/listAll")
     public CommonResult<List<Benefit>> listAll(@RequestBody ListAllBenefitVO request) {
         if (request.getPageNum() == null) {
@@ -39,7 +44,9 @@ public class BenefitController {
     }
 
     @PostMapping("/create")
-    public CommonResult<?> create(@RequestBody BenefitCreateVO vo) {
+    public CommonResult<?> create(@RequestBody BenefitCreateVO vo, HttpServletRequest request) {
+        String token = jwtUtil.extractTokenFromHeader(request.getHeader("Authorization"));
+        vo.setCreatedBy(jwtUtil.getUserIdFromToken(token));
         return benefitService.createBenefit(vo);
     }
 

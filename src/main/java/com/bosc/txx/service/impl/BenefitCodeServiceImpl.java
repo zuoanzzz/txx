@@ -148,7 +148,7 @@ public class BenefitCodeServiceImpl extends ServiceImpl<BenefitCodeMapper, Benef
 
             // 标记为已核销
             code.setStatus("REDEEMED");
-            code.setRedeemedBy(Long.parseLong(request.getRedeemedBy()));
+            code.setRedeemedBy(request.getRedeemedBy());
             code.setRedeemedAt(now);
 
             // 更新数据库

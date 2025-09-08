@@ -55,8 +55,10 @@ public class AccountController {
      * 新增账户
      */
     @PostMapping("/create")
-    public CommonResult<Integer> create(@RequestBody AccountCreateVO request) {
-        Integer result = iaccountService.createPersonalAccount(request);
+    public CommonResult<Integer> create(@RequestBody AccountCreateVO accountCreateVO, HttpServletRequest request) {
+        String token = jwtUtil.extractTokenFromHeader(request.getHeader("Authorization"));
+        accountCreateVO.setCreatedBy(jwtUtil.getUserIdFromToken(token));
+        Integer result = iaccountService.createPersonalAccount(accountCreateVO);
         return CommonResult.success(result);
     }
 
