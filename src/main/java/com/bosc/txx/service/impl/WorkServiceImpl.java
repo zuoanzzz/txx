@@ -58,7 +58,8 @@ public class WorkServiceImpl extends ServiceImpl<WorkMapper, Work> implements IW
 
         if (Objects.nonNull(req.getAccountId())) {
             List<ActivityBet> activityBets = activityBetMapper.selectList(new QueryWrapper<ActivityBet>()
-                    .eq("activity_id", req.getActivityId()));
+                    .eq("activity_id", req.getActivityId())
+                    .eq("account_id", req.getAccountId()));
             Long freeCredit = req.getFreeCredit();
             for (ActivityBet activityBet : activityBets) {
                 freeCredit -= activityBet.getUsedFreeAmount();

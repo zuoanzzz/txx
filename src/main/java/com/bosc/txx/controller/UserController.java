@@ -46,6 +46,7 @@ public class UserController {
         String token = jwtUtil.generateToken(user.getId(), user.getEmployeeNo(), user.getRole());
         
         if (Objects.isNull(user.getLastLogin())) {
+            user.setPassword(null);
             LoginResponse loginResponse = new LoginResponse(token, user, 86400000L); // 24小时
             return CommonResult.success(FIRST_LOGIN.getCode(), loginResponse, FIRST_LOGIN.getDescription());
         }
@@ -53,6 +54,7 @@ public class UserController {
         user.setLastLogin(LocalDateTime.now());
         boolean ok = userService.updateById(user);
         if (ok) {
+            user.setPassword(null);
             LoginResponse loginResponse = new LoginResponse(token, user, 86400000L); // 24小时
             return CommonResult.success(loginResponse);
         } else {
@@ -72,4 +74,19 @@ public class UserController {
         boolean ok = userService.changePassword(user, request.getNewPassword());
         return ok ? CommonResult.success(true) : CommonResult.failed();
     }
+
+    @PostMapping("/refresh")
+    public CommonResult<LoginResponse> refresh(HttpServletRequest httpRequest) {
+        String token = jwtUtil.extractTokenFromHeader(httpRequest.getHeader("Authorization"));
+        Long userId = jwtUtil.getUserIdFromToken(token);
+        User user = userService.getById(userId);
+        if (user == null) {
+            return CommonResult.failed();
+        }
+
+        user.setPassword(null);
+        LoginResponse loginResponse = new LoginResponse(token, user, 86400000L); // 24小时
+        return CommonResult.success(loginResponse);
+    }
+
 }
