@@ -55,7 +55,6 @@ public class ActivityBetServiceImpl extends ServiceImpl<ActivityBetMapper, Activ
                 .eq("user_id", sourceUser.getId()));
         Activity activity = activityMapper.selectById(activityBetReq.getActivityId());
         Account targetAccount = accountMapper.selectById(activity.getAccountId());
-        User targetUser = userMapper.selectById(targetAccount.getUserId());
 
         // 执行转账操作
         TransferDTO transferDTO = new TransferDTO();
@@ -75,7 +74,7 @@ public class ActivityBetServiceImpl extends ServiceImpl<ActivityBetMapper, Activ
 
         ActivityBet activityBet = new ActivityBet();
         BeanUtils.copyProperties(activityBetReq, activityBet);
-        activityBet.setAccountId(sourceAccount.getId());
+        activityBet.setAccountId(Long.valueOf(sourceAccount.getAccountId()));
         activityBet.setRelatedTxId(txId);
         Boolean ok = activityBetMapper.insert(activityBet) > 0;
 
