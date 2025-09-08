@@ -18,7 +18,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -65,6 +67,15 @@ public class WorkServiceImpl extends ServiceImpl<WorkMapper, Work> implements IW
                 freeCredit -= activityBet.getUsedFreeAmount();
             }
             listAllWorkResp.setFreeCredit(freeCredit);
+            // 按workId分组并累加amount
+            Map<Long, Long> workAmountMap = activityBets.stream()
+                    .collect(Collectors.groupingBy(
+                            ActivityBet::getWorkId,
+                            Collectors.summingLong(ActivityBet::getAmount)
+                    ));
+            for (WorkDto workDto : workDtoList) {
+                workDto.setAmount(workAmountMap.get(workDto.getId()));
+            }
         } else {
             for (WorkDto workDto : workDtoList) {
                 List<ActivityBet> activityBets = activityBetMapper.selectList(new QueryWrapper<ActivityBet>()

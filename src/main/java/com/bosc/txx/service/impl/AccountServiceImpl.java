@@ -152,7 +152,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         result.setUpdatedTime(user.getUpdatedTime());
         result.setLastLogin(user.getLastLogin());
 
-        result.setAccountId(account.getAccountId());
+        result.setAccountId(account.getId());
         result.setAccountType(account.getAccountType());
         result.setBalance(account.getBalance());
 

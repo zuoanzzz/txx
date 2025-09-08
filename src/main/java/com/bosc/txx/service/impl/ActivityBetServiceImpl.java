@@ -74,7 +74,7 @@ public class ActivityBetServiceImpl extends ServiceImpl<ActivityBetMapper, Activ
 
         ActivityBet activityBet = new ActivityBet();
         BeanUtils.copyProperties(activityBetReq, activityBet);
-        activityBet.setAccountId(Long.valueOf(sourceAccount.getAccountId()));
+        activityBet.setAccountId(sourceAccount.getId());
         activityBet.setRelatedTxId(txId);
         Boolean ok = activityBetMapper.insert(activityBet) > 0;
 

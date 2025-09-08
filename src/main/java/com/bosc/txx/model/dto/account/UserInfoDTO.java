@@ -18,7 +18,7 @@ public class UserInfoDTO {
     private LocalDateTime lastLogin;
 
     // account信息
-    private String accountId;
+    private Long accountId;
     private String accountType;
     private Long balance;
 }
