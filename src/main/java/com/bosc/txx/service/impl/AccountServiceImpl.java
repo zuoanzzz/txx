@@ -88,7 +88,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         account.setAccountType("PERSONAL"); // 默认个人账户
         account.setBalance(0L); // 初始余额
         account.setDeleted(false);
-        account.setCreatedBy(Long.valueOf(request.getCreatedBy()));
+        account.setCreatedBy(request.getCreatedBy());
         account.setCreatedTime(LocalDateTime.now());
         account.setUpdatedTime(LocalDateTime.now());
         Integer result = accountMapper.insert(account);

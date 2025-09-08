@@ -83,7 +83,7 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, Benefit> impl
 
         // 3. 系统字段填充
         benefit.setDeleted(Boolean.FALSE);
-        benefit.setCreatedBy(Long.valueOf(vo.getCreatedBy()));
+        benefit.setCreatedBy(vo.getCreatedBy());
         benefit.setActive(Boolean.TRUE);
         benefit.setCreatedTime(LocalDateTime.now());
         benefit.setUpdatedTime(LocalDateTime.now());
@@ -95,7 +95,7 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, Benefit> impl
         account.setAccountType("BENEFIT");
         account.setBalance(0L); // 初始余额
         account.setDeleted(false);
-        account.setCreatedBy(Long.valueOf(vo.getCreatedBy()));
+        account.setCreatedBy(vo.getCreatedBy());
         account.setCreatedTime(LocalDateTime.now());
         account.setUpdatedTime(LocalDateTime.now());
         accountMapper.insert(account);
