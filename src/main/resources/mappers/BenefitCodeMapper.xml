@@ -4,6 +4,7 @@
 
     <select id="listAllBenefitCodes" resultType="com.bosc.txx.model.dto.benefitcode.ListAllBenefitCodeDTO">
         SELECT
+        u.name as userName,
         a.account_id,
         b.id as benefit_id,
         b.name as benefit_name,
@@ -22,6 +23,7 @@
     <!-- 根据 userId 分页查询兑换码 -->
     <select id="listByUserIdPage" resultType="com.bosc.txx.model.dto.benefitcode.ListAllBenefitCodeDTO">
         SELECT
+        u.name as userName,
         a.account_id,
         b.id as benefit_id,
         b.name as benefit_name,
@@ -36,6 +38,25 @@
         LEFT JOIN user u ON c.user_id = u.id
         LEFT JOIN account a ON u.id = a.user_id
         WHERE c.user_id = #{userId}
+    </select>
+
+    <select id="queryByUserNamePage" resultType="com.bosc.txx.model.dto.benefitcode.ListAllBenefitCodeDTO">
+        SELECT
+        u.name as userName,
+        a.account_id,
+        b.id as benefit_id,
+        b.name as benefit_name,
+        CASE c.status
+        WHEN 'VALID' THEN 1
+        ELSE 0
+        END as status,
+        c.code,
+        c.exp_date
+        FROM benefit_code c
+        LEFT JOIN benefit b ON c.benefit_id = b.id
+        LEFT JOIN user u ON c.user_id = u.id
+        LEFT JOIN account a ON u.id = a.user_id
+        WHERE u.name LIKE CONCAT('%', #{userName}, '%')
     </select>
 
 </mapper>

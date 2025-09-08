@@ -5,10 +5,7 @@ import com.bosc.txx.common.CommonResult;
 import com.bosc.txx.model.BenefitCode;
 import com.bosc.txx.model.dto.benefitcode.ListAllBenefitCodeDTO;
 import com.bosc.txx.service.IBenefitCodeService;
-import com.bosc.txx.vo.benefitcode.BenefitCodeCheckVO;
-import com.bosc.txx.vo.benefitcode.BenefitCodeExchangeVO;
-import com.bosc.txx.vo.benefitcode.ListAllBenefitCodeVO;
-import com.bosc.txx.vo.benefitcode.ListUserBenefitCodeVO;
+import com.bosc.txx.vo.benefitcode.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,6 +59,18 @@ public class BenefitCodeController {
         }
 
         return iBenefitCodeService.listByUserId(request);
+    }
+
+    @PostMapping("/queryByUserName")
+    public CommonResult<List<ListAllBenefitCodeDTO>> queryByUserName(@RequestBody queryByUserNameVO request) {
+        if (request.getPageNum() == null) {
+            request.setPageNum(1);
+        }
+        if (request.getPageSize() == null) {
+            request.setPageSize(10);
+        }
+
+        return iBenefitCodeService.queryByUserName(request);
     }
 
     /**

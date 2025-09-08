@@ -321,12 +321,17 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
             boolean firstLine = true;
 
             while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue; // 跳过空行
+
                 if (firstLine) {
                     firstLine = false; // 跳过表头
                     continue;
                 }
-                String[] cols = line.split(",");
-                if (cols.length < 3) continue; // 姓名、工号、部门
+
+                // 简单分割（注意：不支持带引号的复杂 CSV）
+                String[] cols = line.split(",", -1); // -1 保留空字段
+                if (cols.length < 3) continue;
 
                 String name = cols[0].trim();
                 String employeeNo = cols[1].trim();
@@ -337,7 +342,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
                 user.setName(name);
                 user.setEmployeeNo(employeeNo);
                 user.setDepartment(department);
-                user.setPassword(DEFAULT_PASSWORD);
+                user.setPassword(encryptPassword());
                 user.setRole("NORMAL");
                 users.add(user);
             }
@@ -350,10 +355,13 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
                     // 创建对应账户
                     Account account = new Account();
                     account.setUserId(user.getId());
-                    account.setAccountId(UUID.randomUUID().toString().replace("-", ""));
-                    account.setAccountType("PERSONAL");
-                    account.setBalance(0L);
+                    account.setAccountId(AccountIdGenerator.generateAccountId()); // 可自定义生成规则
+                    account.setAccountType("PERSONAL"); // 默认个人账户
+                    account.setBalance(0L); // 初始余额
                     account.setDeleted(false);
+                    account.setCreatedBy(Long.valueOf("1"));
+                    account.setCreatedTime(LocalDateTime.now());
+                    account.setUpdatedTime(LocalDateTime.now());
                     accounts.add(account);
                 }
 
