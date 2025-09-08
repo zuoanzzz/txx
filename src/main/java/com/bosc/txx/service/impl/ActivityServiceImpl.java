@@ -3,17 +3,21 @@ package com.bosc.txx.service.impl;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.bosc.txx.dao.AccountMapper;
-import com.bosc.txx.dao.ActivityMapper;
+import com.bosc.txx.dao.*;
 import com.bosc.txx.model.Account;
 import com.bosc.txx.model.Activity;
+import com.bosc.txx.model.ActivityBet;
+import com.bosc.txx.model.dto.activitybet.ActivityBetResult;
 import com.bosc.txx.service.IActivityService;
 import com.bosc.txx.util.AccountIdGenerator;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,6 +35,12 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
     ActivityMapper activityMapper;
     @Autowired
     private AccountMapper accountMapper;
+    @Autowired
+    private ActivityBetMapper activityBetMapper;
+    @Autowired
+    private WorkMapper workMapper;
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     public Activity getByName(String name) {
@@ -53,6 +63,57 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
 
         return row > 0;
     }
+
+    @Override
+    public void createUserSheet(Long id, Sheet userSheet, CellStyle headerStyle) {
+        // 创建表头
+        Row headerRow = userSheet.createRow(0);
+        String[] headers = {"活动名称", "作品名称", "投注人", "投注金额", "投注时间"};
+
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
+        List<ActivityBet> list = activityBetMapper.selectList(new QueryWrapper<ActivityBet>()
+                .eq("activity_id", id)
+                .groupBy("account_id")
+                .groupBy("work_id"));
+        Activity activity = activityMapper.selectById(list.get(0).getActivityId());
+
+        List<ActivityBetResult> betList = new ArrayList<>();
+        for (ActivityBet activityBet : list) {
+            ActivityBetResult betResult = new ActivityBetResult();
+            betResult.setActivityName(activity.getName());
+            betResult.setWorkName(workMapper.selectById(activityBet.getWorkId()).getTitle());
+            Account account = accountMapper.selectById(activityBet.getAccountId());
+            betResult.setBetName(userMapper.selectById(account.getUserId()).getName());
+            betResult.setBetAmount(activityBet.getAmount());
+            betResult.setBetDate(activityBet.getCreatedTime());
+            betList.add(betResult);
+        }
+
+        // 填充数据
+        int rowNum = 1;
+        for (ActivityBetResult result : betList) {
+            Row row = userSheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(result.getActivityName());
+            row.createCell(1).setCellValue(result.getWorkName());
+            row.createCell(2).setCellValue(result.getBetName());
+            row.createCell(3).setCellValue(result.getBetAmount());
+            row.createCell(4).setCellValue(result.getBetDate());
+        }
+
+        // 自动调整列宽
+        for (int i = 0; i < headers.length; i++) {
+            userSheet.autoSizeColumn(i);
+        }
+    }
+
+//    @Override
+//    public void createWorkSheet(Sheet workSheet, CellStyle headerStyle) {
+//
+//    }
 
     @Override
     public Activity getById(Serializable id) {
