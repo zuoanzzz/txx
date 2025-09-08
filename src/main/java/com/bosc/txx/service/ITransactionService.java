@@ -4,6 +4,7 @@ import com.bosc.txx.controller.vo.transaction.BatchTransferImportExcelVO;
 import com.bosc.txx.model.Transaction;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.bosc.txx.model.User;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -23,4 +24,6 @@ public interface ITransactionService extends IService<Transaction> {
     List<Transaction> listByAccountId(Long accountId);
 
     void importDataAsync(List<BatchTransferImportExcelVO> list, Long createdBy);
+
+    List<BatchTransferImportExcelVO> parseFile(MultipartFile file);
 }
