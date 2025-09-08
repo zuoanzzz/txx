@@ -15,10 +15,7 @@ import com.bosc.txx.model.dto.benefitcode.ListAllBenefitCodeDTO;
 import com.bosc.txx.service.IAccountService;
 import com.bosc.txx.service.IBenefitCodeService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.bosc.txx.vo.benefitcode.BenefitCodeCheckVO;
-import com.bosc.txx.vo.benefitcode.BenefitCodeExchangeVO;
-import com.bosc.txx.vo.benefitcode.ListAllBenefitCodeVO;
-import com.bosc.txx.vo.benefitcode.ListUserBenefitCodeVO;
+import com.bosc.txx.vo.benefitcode.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -165,6 +162,13 @@ public class BenefitCodeServiceImpl extends ServiceImpl<BenefitCodeMapper, Benef
     public CommonResult<List<ListAllBenefitCodeDTO>> listByUserId(ListUserBenefitCodeVO request) {
         Page<ListAllBenefitCodeDTO> page = new Page<>(request.getPageNum(), request.getPageSize());
         IPage<ListAllBenefitCodeDTO> result = benefitCodeMapper.listByUserIdPage(page, request.getUserId());
+        return CommonResult.success(result.getRecords());
+    }
+
+    @Override
+    public CommonResult<List<ListAllBenefitCodeDTO>> queryByUserName(queryByUserNameVO request) {
+        Page<ListAllBenefitCodeDTO> page = new Page<>(request.getPageNum(), request.getPageSize());
+        IPage<ListAllBenefitCodeDTO> result = benefitCodeMapper.queryByUserNamePage(page, request.getUserName());
         return CommonResult.success(result.getRecords());
     }
 }

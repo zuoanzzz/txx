@@ -22,4 +22,6 @@ public interface BenefitCodeMapper extends BaseMapper<BenefitCode> {
     IPage<ListAllBenefitCodeDTO> listAllBenefitCodes(Page<?> page);
 
     IPage<ListAllBenefitCodeDTO> listByUserIdPage(Page<ListAllBenefitCodeDTO> page, @Param("userId") Long userId);
+
+    IPage<ListAllBenefitCodeDTO> queryByUserNamePage(Page<ListAllBenefitCodeDTO> page, @Param("userName") String userName);
 }

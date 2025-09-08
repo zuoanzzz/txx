@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class ListAllBenefitCodeDTO {
+    private String userName;
     private String accountId;
     private Long benefitId;
     private String benefitName;
