@@ -21,8 +21,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addMapping("/**") // 所有接口
                 .allowCredentials(false) // 改为false，因为使用JWT而不是cookie
                 .allowedOriginPatterns(
-                        "http://127.0.0.1:5177",
-                        "http://localhost:5177")
+                        "http://10.208.71.49:5177",
+                        "http://10.208.71.50:5177")
                 .allowedMethods(new String[]{"GET", "POST", "PUT", "DELETE", "OPTIONS"}) // 添加OPTIONS方法
                 .allowedHeaders("*")
                 .exposedHeaders("*");

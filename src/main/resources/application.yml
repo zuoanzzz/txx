@@ -5,9 +5,9 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/stablecoin?serverTimezone=GMT%2B8
-    username: root
-    password: root
+    url: jdbc:mysql://10.208.132.12:15276/bosasdb?serverTimezone=GMT%2B8
+    username: bosas
+    password: bosas_App2020
     druid:
       # 初始化时建立物理连接的个数
       initial-size: 5

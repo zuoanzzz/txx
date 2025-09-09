@@ -18,8 +18,8 @@ public class ActivityBetUserResult {
 
     private String betName;
 
-    private Long betAmount;
+    private String employeeNo;
 
-    private LocalDateTime betDate;
+    private Long betAmount;
 
 }

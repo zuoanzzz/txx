@@ -7,6 +7,7 @@ import com.bosc.txx.dao.*;
 import com.bosc.txx.model.Account;
 import com.bosc.txx.model.Activity;
 import com.bosc.txx.model.ActivityBet;
+import com.bosc.txx.model.User;
 import com.bosc.txx.model.dto.activitybet.ActivityBetUserResult;
 import com.bosc.txx.model.dto.activitybet.ActivityBetWorkResult;
 import com.bosc.txx.service.IActivityService;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -70,30 +72,52 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
     public void createUserSheet(Long id, Sheet userSheet, CellStyle headerStyle) {
         // 创建表头
         Row headerRow = userSheet.createRow(0);
-        String[] headers = {"活动名称", "作品名称", "投注人", "投注金额", "投注时间"};
+        String[] headers = {"活动名称", "作品名称", "投注人", "工号", "投注金额"};
 
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
             cell.setCellStyle(headerStyle);
         }
+
         List<ActivityBet> list = activityBetMapper.selectList(new QueryWrapper<ActivityBet>()
                 .eq("activity_id", id)
                 .orderByAsc("account_id")
                 .orderByAsc("work_id"));
+
+        // 添加空值检查
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+
         Activity activity = activityMapper.selectById(list.get(0).getActivityId());
 
-        List<ActivityBetUserResult> betList = new ArrayList<>();
+        // 使用Map来聚合相同工号和作品的投注金额
+        Map<String, ActivityBetUserResult> resultMap = new LinkedHashMap<>();
+
         for (ActivityBet activityBet : list) {
-            ActivityBetUserResult betResult = new ActivityBetUserResult();
-            betResult.setActivityName(activity.getName());
-            betResult.setWorkName(workMapper.selectById(activityBet.getWorkId()).getTitle());
-            Account account = accountMapper.selectById(activityBet.getAccountId());
-            betResult.setBetName(userMapper.selectById(account.getUserId()).getName());
-            betResult.setBetAmount(activityBet.getAmount());
-            betResult.setBetDate(activityBet.getCreatedTime());
-            betList.add(betResult);
+            String key = activityBet.getAccountId() + "_" + activityBet.getWorkId();
+
+            if (resultMap.containsKey(key)) {
+                // 如果已存在相同工号和作品的记录，累加金额
+                ActivityBetUserResult existingResult = resultMap.get(key);
+                existingResult.setBetAmount(existingResult.getBetAmount() + activityBet.getAmount());
+            } else {
+                // 创建新的记录
+                ActivityBetUserResult betResult = new ActivityBetUserResult();
+                betResult.setActivityName(activity.getName());
+                betResult.setWorkName(workMapper.selectById(activityBet.getWorkId()).getTitle());
+                Account account = accountMapper.selectById(activityBet.getAccountId());
+                User user = userMapper.selectById(account.getUserId());
+                betResult.setBetName(user.getName());
+                betResult.setEmployeeNo(user.getEmployeeNo());
+                betResult.setBetAmount(activityBet.getAmount());
+                resultMap.put(key, betResult);
+            }
         }
+
+        // 转换为列表
+        List<ActivityBetUserResult> betList = new ArrayList<>(resultMap.values());
 
         // 填充数据
         int rowNum = 1;
@@ -102,8 +126,8 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
             row.createCell(0).setCellValue(result.getActivityName());
             row.createCell(1).setCellValue(result.getWorkName());
             row.createCell(2).setCellValue(result.getBetName());
-            row.createCell(3).setCellValue(result.getBetAmount());
-            row.createCell(4).setCellValue(result.getBetDate());
+            row.createCell(3).setCellValue(result.getEmployeeNo());
+            row.createCell(4).setCellValue(result.getBetAmount());
         }
 
         // 自动调整列宽
