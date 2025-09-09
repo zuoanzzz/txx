@@ -41,7 +41,7 @@ public class Benefit implements Serializable {
      * 权益账户
      */
     @TableField("account_id")
-    private String accountId;
+    private Long accountId;
 
     /**
      * 权益描述

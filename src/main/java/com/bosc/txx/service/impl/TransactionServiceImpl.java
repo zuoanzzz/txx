@@ -97,8 +97,8 @@ public class TransactionServiceImpl extends ServiceImpl<TransactionMapper, Trans
             TransferDTO transferDTO = new TransferDTO();
             transferDTO.setSourceName(sourceUser.getName());
             transferDTO.setTargetName(targetUser.getName());
-            transferDTO.setSourceAccountId(sourceAccount.getAccountId());
-            transferDTO.setTargetAccountId(targetAccount.getAccountId());
+            transferDTO.setSourceAccountId(sourceAccount.getId());
+            transferDTO.setTargetAccountId(targetAccount.getId());
             transferDTO.setSourceAccountType(sourceAccount.getAccountType());
             transferDTO.setTargetAccountType(targetAccount.getAccountType());
             transferDTO.setAmount(Long.valueOf(transferItem.getAmount()));

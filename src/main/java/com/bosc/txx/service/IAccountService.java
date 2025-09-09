@@ -24,7 +24,7 @@ public interface IAccountService extends IService<Account> {
 
     Integer createPersonalAccount(AccountCreateVO request);
 
-    CommonResult<?> deleteAccount(String accountId);
+    CommonResult<?> deleteAccount(Long accountId);
 
     CommonResult<List<Account>> listAllAccounts(ListAllAccountVO request);
 

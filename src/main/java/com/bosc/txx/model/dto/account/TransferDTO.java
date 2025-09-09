@@ -4,10 +4,10 @@ import lombok.Data;
 
 @Data
 public class TransferDTO {
-    private String sourceAccountId;
+    private Long sourceAccountId;
     private String sourceAccountType;
     private String sourceName;
-    private String targetAccountId;
+    private Long targetAccountId;
     private String targetAccountType;
     private String targetName;
     private Long amount;

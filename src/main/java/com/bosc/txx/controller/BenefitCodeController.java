@@ -36,8 +36,10 @@ public class BenefitCodeController {
      * 兑换权益、生成兑换码
      */
     @PostMapping("/getBenefitCodes")
-    public CommonResult<?> getBenefitCodes(@RequestBody BenefitCodeExchangeVO request) {
-        return iBenefitCodeService.getBenefitCodes(request);
+    public CommonResult<?> getBenefitCodes(@RequestBody BenefitCodeExchangeVO benefitCodeExchangeVO, HttpServletRequest request) {
+        String token = jwtUtil.extractTokenFromHeader(request.getHeader("Authorization"));
+        benefitCodeExchangeVO.setUserId(jwtUtil.getUserIdFromToken(token));
+        return iBenefitCodeService.getBenefitCodes(benefitCodeExchangeVO);
     }
 
     /**
