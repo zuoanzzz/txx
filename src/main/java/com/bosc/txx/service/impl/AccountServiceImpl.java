@@ -326,8 +326,8 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
                 String[] cols = line.split(",", -1); // -1 保留空字段
                 if (cols.length < 3) continue;
 
-                String name = cols[0].trim();
-                String employeeNo = cols[1].trim();
+                String employeeNo = cols[0].trim();
+                String name = cols[1].trim();
                 String department = cols[2].trim();
 
                 // 创建用户
