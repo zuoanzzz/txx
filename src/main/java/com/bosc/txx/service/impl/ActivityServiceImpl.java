@@ -7,11 +7,11 @@ import com.bosc.txx.dao.*;
 import com.bosc.txx.model.Account;
 import com.bosc.txx.model.Activity;
 import com.bosc.txx.model.ActivityBet;
-import com.bosc.txx.model.dto.activitybet.ActivityBetResult;
+import com.bosc.txx.model.dto.activitybet.ActivityBetUserResult;
+import com.bosc.txx.model.dto.activitybet.ActivityBetWorkResult;
 import com.bosc.txx.service.IActivityService;
 import com.bosc.txx.util.AccountIdGenerator;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +19,8 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -81,9 +83,9 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
                 .groupBy("work_id"));
         Activity activity = activityMapper.selectById(list.get(0).getActivityId());
 
-        List<ActivityBetResult> betList = new ArrayList<>();
+        List<ActivityBetUserResult> betList = new ArrayList<>();
         for (ActivityBet activityBet : list) {
-            ActivityBetResult betResult = new ActivityBetResult();
+            ActivityBetUserResult betResult = new ActivityBetUserResult();
             betResult.setActivityName(activity.getName());
             betResult.setWorkName(workMapper.selectById(activityBet.getWorkId()).getTitle());
             Account account = accountMapper.selectById(activityBet.getAccountId());
@@ -95,7 +97,7 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
 
         // 填充数据
         int rowNum = 1;
-        for (ActivityBetResult result : betList) {
+        for (ActivityBetUserResult result : betList) {
             Row row = userSheet.createRow(rowNum++);
             row.createCell(0).setCellValue(result.getActivityName());
             row.createCell(1).setCellValue(result.getWorkName());
@@ -110,10 +112,49 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
         }
     }
 
-//    @Override
-//    public void createWorkSheet(Sheet workSheet, CellStyle headerStyle) {
-//
-//    }
+    @Override
+    public void createWorkSheet(Long id, Sheet workSheet, CellStyle headerStyle) {
+        // 创建表头
+        Row headerRow = workSheet.createRow(0);
+        String[] headers = {"活动名称", "作品名称", "投注总金额"};
+
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
+        List<ActivityBet> list = activityBetMapper.selectList(new QueryWrapper<ActivityBet>()
+                .eq("activity_id", id));
+        Map<Long, Long> workAmountMap = list.stream()
+                .collect(Collectors.groupingBy(
+                        ActivityBet::getWorkId,
+                        Collectors.summingLong(ActivityBet::getAmount)
+                ));
+        Activity activity = activityMapper.selectById(list.get(0).getActivityId());
+
+        List<ActivityBetWorkResult> betList = new ArrayList<>();
+        for (Long workId : workAmountMap.keySet()) {
+            ActivityBetWorkResult betResult = new ActivityBetWorkResult();
+            betResult.setActivityName(activity.getName());
+            betResult.setWorkName(workMapper.selectById(workId).getTitle());
+            betResult.setBetAmount(workAmountMap.get(workId));
+            betList.add(betResult);
+        }
+
+        // 填充数据
+        int rowNum = 1;
+        for (ActivityBetWorkResult result : betList) {
+            Row row = workSheet.createRow(rowNum++);
+            row.createCell(0).setCellValue(result.getActivityName());
+            row.createCell(1).setCellValue(result.getWorkName());
+            row.createCell(3).setCellValue(result.getBetAmount());
+        }
+
+        // 自动调整列宽
+        for (int i = 0; i < headers.length; i++) {
+            workSheet.autoSizeColumn(i);
+        }
+    }
 
     @Override
     public Activity getById(Serializable id) {
