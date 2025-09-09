@@ -7,7 +7,7 @@
         SELECT u.*
         FROM account a
         JOIN user u ON a.user_id = u.id
-        WHERE a.account_id = #{accountId}
+        WHERE a.id = #{accountId}
         AND u.deleted = 0
         LIMIT 1
     </select>

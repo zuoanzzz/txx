@@ -66,7 +66,7 @@ public class AccountController {
      * 删除账户
      */
     @DeleteMapping("/delete/{accountId}")
-    public CommonResult<?> delete(@PathVariable String accountId) {
+    public CommonResult<?> delete(@PathVariable Long accountId) {
         return iaccountService.deleteAccount(accountId);
     }
 
@@ -94,32 +94,35 @@ public class AccountController {
      * 交易接口（转账、流水）
      */
     @PostMapping("/trans")
-    public CommonResult<Long> transfer(@RequestBody TransferVO transRequest) {
+    public CommonResult<Long> transfer(@RequestBody TransferVO transRequest, HttpServletRequest request) {
+        String token = jwtUtil.extractTokenFromHeader(request.getHeader("Authorization"));
+        transRequest.setCreatedBy(jwtUtil.getUserIdFromToken(token));
+
         User tgtUser = userMapper.selectUserByEmployeeNo(transRequest.getTargetEmployeeNo());
 
-        TransferDTO request = new TransferDTO();
+        TransferDTO transferDTO = new TransferDTO();
         Account srcAccount = accountMapper.selectByUserId(transRequest.getCreatedBy());
         Account tgtAccount = accountMapper.selectByUserId(tgtUser.getId());
 
         if("PERSONAL".equals(srcAccount.getAccountType())) {
             User srcUser = userMapper.selectById(srcAccount.getUserId());
-            request.setSourceName(srcUser.getName());
+            transferDTO.setSourceName(srcUser.getName());
         }
 
         if("PERSONAL".equals(tgtAccount.getAccountType())) {
-            request.setTargetName(tgtUser.getName());
+            transferDTO.setTargetName(tgtUser.getName());
         }
 
-        request.setSourceAccountId(srcAccount.getAccountId());
-        request.setSourceAccountType(srcAccount.getAccountType());
-        request.setTargetAccountId(tgtAccount.getAccountId());
-        request.setTargetAccountType(tgtAccount.getAccountType());
+        transferDTO.setSourceAccountId(srcAccount.getId());
+        transferDTO.setSourceAccountType(srcAccount.getAccountType());
+        transferDTO.setTargetAccountId(tgtAccount.getId());
+        transferDTO.setTargetAccountType(tgtAccount.getAccountType());
 
-        request.setAmount(transRequest.getAmount());
-        request.setReason(transRequest.getReason());
-        request.setCreatedBy(transRequest.getCreatedBy());
+        transferDTO.setAmount(transRequest.getAmount());
+        transferDTO.setReason(transRequest.getReason());
+        transferDTO.setCreatedBy(transRequest.getCreatedBy());
 
-        Long txId = iaccountService.transfer(request);
+        Long txId = iaccountService.transfer(transferDTO);
         if(txId == null) {
             return CommonResult.failed();
         }

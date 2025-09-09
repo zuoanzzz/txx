@@ -99,7 +99,7 @@ public class BenefitServiceImpl extends ServiceImpl<BenefitMapper, Benefit> impl
         account.setCreatedTime(LocalDateTime.now());
         account.setUpdatedTime(LocalDateTime.now());
         accountMapper.insert(account);
-        benefit.setAccountId(account.getAccountId());
+        benefit.setAccountId(account.getId());
 
         // 5. 插入数据库
         benefitMapper.insert(benefit);

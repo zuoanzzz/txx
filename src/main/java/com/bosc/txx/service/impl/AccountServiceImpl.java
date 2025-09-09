@@ -91,18 +91,16 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         account.setCreatedBy(request.getCreatedBy());
         account.setCreatedTime(LocalDateTime.now());
         account.setUpdatedTime(LocalDateTime.now());
-        Integer result = accountMapper.insert(account);
 
-        return result;
+        return accountMapper.insert(account);
     }
 
     private String encryptPassword() {
-        String newPwdEnc = md5Hex(DEFAULT_PASSWORD);
-        return newPwdEnc;
+        return md5Hex(DEFAULT_PASSWORD);
     }
 
     @Override
-    public CommonResult<?> deleteAccount(String accountId) {
+    public CommonResult<?> deleteAccount(Long accountId) {
         // 查询账户
         Account account = accountMapper.selectByAccountId(accountId);
         if (account == null) {
@@ -193,10 +191,10 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         }
 
         // 4. 固定加锁顺序（按 accountId 字典序）以避免死锁
-        String aId = transRequest.getSourceAccountId();
-        String bId = transRequest.getTargetAccountId();
-        String firstId = (aId.compareTo(bId) <= 0) ? aId : bId;
-        String secondId = (aId.compareTo(bId) <= 0) ? bId : aId;
+        Long aId = transRequest.getSourceAccountId();
+        Long bId = transRequest.getTargetAccountId();
+        Long firstId = (aId.compareTo(bId) <= 0) ? aId : bId;
+        Long secondId = (aId.compareTo(bId) <= 0) ? bId : aId;
 
         Account firstLocked = accountMapper.selectByAccountIdForUpdate(firstId);
         Account secondLocked = accountMapper.selectByAccountIdForUpdate(secondId);
@@ -205,8 +203,8 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         }
 
         // 5. 映射回 src/tgt
-        Account src = firstLocked.getAccountId().equals(aId) ? firstLocked : secondLocked;
-        Account tgt = firstLocked.getAccountId().equals(aId) ? secondLocked : firstLocked;
+        Account src = firstLocked.getId().equals(aId) ? firstLocked : secondLocked;
+        Account tgt = firstLocked.getId().equals(aId) ? secondLocked : firstLocked;
 
         // 6. 存在性与删除标志校验
         if (src == null || tgt == null) {
@@ -237,36 +235,31 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         }
 
         // 9. 更新余额并持久化（行锁已生效）
-        try {
-            if (!"GRANT".equals(txType)) {
-                long currentSrc = src.getBalance();
-                long newSrc;
-                if ("ACTIVITY_BET".equals(txType)) {
-                    long change = transRequest.getAmount() - transRequest.getUsedFreeAmount();
-                    newSrc = Math.subtractExact(currentSrc, change);
-                } else {
-                    newSrc = Math.subtractExact(currentSrc, amount);
-                }
-                src.setBalance(newSrc);
-                src.setUpdatedTime(LocalDateTime.now());
-                accountMapper.updateById(src);
+        if (!"GRANT".equals(txType)) {
+            long currentSrc = src.getBalance();
+            long newSrc;
+            if ("ACTIVITY_BET".equals(txType)) {
+                long change = transRequest.getAmount() - transRequest.getUsedFreeAmount();
+                newSrc = Math.subtractExact(currentSrc, change);
+            } else {
+                newSrc = Math.subtractExact(currentSrc, amount);
             }
-
-            long currentTgt = tgt.getBalance();
-            long newTgt = Math.addExact(currentTgt, amount);
-            tgt.setBalance(newTgt);
-            tgt.setUpdatedTime(LocalDateTime.now());
-            accountMapper.updateById(tgt);
-        } catch (ArithmeticException ae) {
-            // 溢出/下溢，抛出异常使事务回滚
-            throw ae;
+            src.setBalance(newSrc);
+            src.setUpdatedTime(LocalDateTime.now());
+            accountMapper.updateById(src);
         }
+
+        long currentTgt = tgt.getBalance();
+        long newTgt = Math.addExact(currentTgt, amount);
+        tgt.setBalance(newTgt);
+        tgt.setUpdatedTime(LocalDateTime.now());
+        accountMapper.updateById(tgt);
 
         // 10. 插入流水 Transaction
         Transaction tx = new Transaction();
         tx.setTxNo(UUID.randomUUID().toString().replace("-", ""));
-        tx.setSourceAccountId(Long.valueOf(src.getAccountId()));
-        tx.setTargetAccountId(Long.valueOf(tgt.getAccountId()));
+        tx.setSourceAccountId(src.getId());
+        tx.setTargetAccountId(tgt.getId());
         tx.setSourceName(transRequest.getSourceName());
         tx.setTargetName(transRequest.getTargetName());
         tx.setSourceAccountType(srcType);

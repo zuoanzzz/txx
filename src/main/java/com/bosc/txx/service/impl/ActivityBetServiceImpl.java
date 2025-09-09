@@ -60,8 +60,8 @@ public class ActivityBetServiceImpl extends ServiceImpl<ActivityBetMapper, Activ
         TransferDTO transferDTO = new TransferDTO();
         transferDTO.setSourceName(sourceUser.getName());
         transferDTO.setTargetName(activity.getName());
-        transferDTO.setSourceAccountId(sourceAccount.getAccountId());
-        transferDTO.setTargetAccountId(targetAccount.getAccountId());
+        transferDTO.setSourceAccountId(sourceAccount.getId());
+        transferDTO.setTargetAccountId(targetAccount.getId());
         transferDTO.setSourceAccountType(sourceAccount.getAccountType());
         transferDTO.setTargetAccountType(targetAccount.getAccountType());
         transferDTO.setAmount(activityBetReq.getAmount());

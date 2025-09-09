@@ -5,14 +5,14 @@
     <select id="selectByAccountIdForUpdate">
         SELECT *
         FROM account
-        WHERE account_id = #{accountId}
+        WHERE id = #{accountId}
         FOR UPDATE
     </select>
 
     <select id="selectByAccountId">
         SELECT *
         FROM account
-        WHERE account_id = #{accountId}
+        WHERE id = #{accountId}
     </select>
 
     <select id="selectByUserId">
