@@ -79,8 +79,8 @@ public class ActivityServiceImpl extends ServiceImpl<ActivityMapper, Activity> i
         }
         List<ActivityBet> list = activityBetMapper.selectList(new QueryWrapper<ActivityBet>()
                 .eq("activity_id", id)
-                .groupBy("account_id")
-                .groupBy("work_id"));
+                .orderByAsc("account_id")
+                .orderByAsc("work_id"));
         Activity activity = activityMapper.selectById(list.get(0).getActivityId());
 
         List<ActivityBetUserResult> betList = new ArrayList<>();
