@@ -102,15 +102,12 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     @Override
     public CommonResult<?> deleteAccount(Long accountId) {
         // 查询账户
-        Account account = accountMapper.selectByAccountId(accountId);
-        if (account == null) {
-            return CommonResult.failed(); // 账户不存在，使用统一失败返回
+        if (accountId == null) {
+            return CommonResult.failed();
         }
 
         // 逻辑删除
-        account.setDeleted(true);
-        account.setUpdatedTime(LocalDateTime.now());
-        int rows = accountMapper.updateById(account);
+        int rows = accountMapper.deleteById(accountId);
         if (rows > 0) {
             return CommonResult.success("账户删除成功"); // 成功，返回 message
         } else {
@@ -303,6 +300,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
 
+    @Override
     @Transactional
     public CommonResult<?> importAccounts(MultipartFile file) {
         try (BufferedReader reader = new BufferedReader(

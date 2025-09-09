@@ -9,12 +9,6 @@
         FOR UPDATE
     </select>
 
-    <select id="selectByAccountId">
-        SELECT *
-        FROM account
-        WHERE id = #{accountId}
-    </select>
-
     <select id="selectByUserId">
         SELECT *
         FROM account
